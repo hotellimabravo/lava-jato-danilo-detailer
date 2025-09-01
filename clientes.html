@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Cadastro de Clientes</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<h1>Cadastro de Clientes 👤</h1>
+		<nav class="navbar">
+			<a href="index.html">🏠 Início</a>
+			<a href="clientes.html">👤 Clientes</a>
+			<a href="servicos.html">🛠️ Serviços</a>
+			<a href="pedidos.html">📋 Pedidos</a>
+		</nav>
+
+		<form id="clienteForm" class="form">
+			<label for="clienteNome">Nome:</label>
+			<input
+				type="text"
+				id="clienteNome"
+				required
+				placeholder="Nome completo" />
+
+			<label for="clienteCpf">CPF:</label>
+			<input
+				type="text"
+				id="clienteCpf"
+				required
+				placeholder="000.000.000-00" />
+
+			<label for="telefone1">Telefone 1:</label>
+			<input type="text" id="telefone1" placeholder="(00) 00000-0000" />
+			<label><input type="checkbox" id="whatsapp1" /> WhatsApp</label>
+
+			<label for="telefone2">Telefone 2:</label>
+			<input type="text" id="telefone2" placeholder="(00) 00000-0000" />
+			<label><input type="checkbox" id="whatsapp2" /> WhatsApp</label>
+
+			<label for="endereco">Endereço:</label>
+			<input type="text" id="endereco" placeholder="Rua, nº, bairro, cidade" />
+
+			<button type="submit" class="btn">Salvar Cliente</button>
+		</form>
+
+		<h2>Clientes Cadastrados</h2>
+		<table id="clientesTable" class="tabela">
+			<thead>
+				<tr>
+					<th>Nome</th>
+					<th>CPF</th>
+					<th>Telefones</th>
+					<th>Endereço</th>
+					<th>Histórico</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+
+		<a href="index.html" class="btn">⬅ Voltar</a>
+
+		<script src="js/clientes.js"></script>
+	</body>
+</html>

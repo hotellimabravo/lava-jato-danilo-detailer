@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Pedidos / Ordens de Serviço</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<h1>Pedidos / Ordens de Serviço 📝</h1>
+
+		<nav class="navbar">
+			<a href="index.html">🏠 Início</a>
+			<a href="clientes.html">👤 Clientes</a>
+			<a href="servicos.html">🛠️ Serviços</a>
+			<a href="pedidos.html">📋 Pedidos</a>
+		</nav>
+
+		<form id="pedidoForm" class="form">
+			<label for="pedidoCliente">Cliente:</label>
+			<input
+				type="text"
+				id="pedidoCliente"
+				required
+				autocomplete="off"
+				placeholder="Digite o nome do cliente" />
+			<div id="sugestoesClientes" class="sugestoes"></div>
+
+			<label for="pedidoServico">Serviços:</label>
+			<select id="pedidoServico" multiple required></select>
+
+			<label for="pedidoData">Data:</label>
+			<input type="date" id="pedidoData" />
+
+			<label for="pedidoValor">Valor Total (R$):</label>
+			<input
+				type="number"
+				id="pedidoValor"
+				step="0.01"
+				required
+				placeholder="Ex: 150.00" />
+
+			<label for="formaPagamento">Forma de Pagamento:</label>
+			<select id="formaPagamento" required>
+				<option value="Dinheiro">Dinheiro</option>
+				<option value="Cartão">Cartão</option>
+				<option value="Pix">Pix</option>
+			</select>
+
+			<button type="submit" class="btn">Salvar Pedido</button>
+		</form>
+
+		<h2>Pedidos Registrados</h2>
+		<table id="pedidosTable" class="tabela">
+			<thead>
+				<tr>
+					<th>Cliente</th>
+					<th>Serviços</th>
+					<th>Data</th>
+					<th>Valor (R$)</th>
+					<th>Pagamento</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+
+		<a href="index.html" class="btn">⬅ Voltar</a>
+
+		<script src="js/pedidos.js"></script>
+	</body>
+</html>
