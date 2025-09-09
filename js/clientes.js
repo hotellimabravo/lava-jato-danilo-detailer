@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		clientes.forEach((c) => {
 			const tr = document.createElement('tr');
 			tr.innerHTML = `
-        <td>${c.nome}</td>
+        <td>${c.nome} - <button class="edit__btn btn">Editar</button></td> 
         <td>${c.cpf}</td>
         <td>${c.tel1} (${c.wpp1})<br>${c.tel2} (${c.wpp2})</td>
         <td>${c.endereco}</td>

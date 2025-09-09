@@ -59,6 +59,7 @@
 	color: #fff;
 	font-weight: bold;
 	transition: background 0.3s;
+	border: none;
 }
 
 .btn:hover {
@@ -138,4 +139,8 @@
 
 .navbar a:hover {
 	background: #0056b3;
+}
+
+.edit__btn {
+	border: 1px red;
 }
