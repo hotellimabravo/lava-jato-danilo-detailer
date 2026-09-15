@@ -1,0 +1,14 @@
+{
+  "name": "lava-jato-danilo-detailer",
+  "version": "1.0.0",
+  "description": "Sistema de gerenciamento para lava jato com cadastro de clientes, serviços e pedidos.",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "node -e 'console.log(\"Build complete\")'"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

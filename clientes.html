@@ -2,63 +2,123 @@
 <html lang="pt-BR">
 	<head>
 		<meta charset="UTF-8" />
-		<title>Cadastro de Clientes</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+		<title>Cadastro de Clientes - Lava Jato</title>
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<h1>Cadastro de Clientes 👤</h1>
-		<nav class="navbar">
-			<a href="index.html">🏠 Início</a>
-			<a href="clientes.html">👤 Clientes</a>
-			<a href="servicos.html">🛠️ Serviços</a>
-			<a href="pedidos.html">📋 Pedidos</a>
-		</nav>
+		<!-- Header -->
+		<header class="site-header">
+			<div class="header-inner">
+				<a href="index.html" class="brand-wrapper">
+					<div class="brand-logo">🚗</div>
+					<div class="brand-title">
+						<span>Lava Jato</span>
+						<span class="brand-subtitle">Danilo Detailer</span>
+					</div>
+				</a>
+				<nav class="navbar">
+					<a href="index.html">🏠 Início</a>
+					<a href="pedidos.html">📋 Pedidos / O.S.</a>
+					<a href="clientes.html" class="active">👤 Clientes</a>
+					<a href="servicos.html">🛠️ Serviços</a>
+				</nav>
+			</div>
+		</header>
 
-		<form id="clienteForm" class="form">
-			<label for="clienteNome">Nome:</label>
-			<input
-				type="text"
-				id="clienteNome"
-				required
-				placeholder="Nome completo" />
+		<!-- Main -->
+		<main class="container">
+			<div class="page-header">
+				<h1 class="page-title">Cadastro de Clientes</h1>
+				<p class="page-subtitle">Gerencie os dados de contato e histórico dos clientes</p>
+			</div>
 
-			<label for="clienteCpf">CPF:</label>
-			<input
-				type="text"
-				id="clienteCpf"
-				required
-				placeholder="000.000.000-00" />
+			<!-- Formulário de Cadastro / Edição -->
+			<div class="content-card">
+				<div class="content-card-title">
+					<span id="formCardTitle">Novo Cliente</span>
+					<button type="button" id="btnCancelarEdicao" class="btn btn-secondary btn-sm" style="display: none;">Cancelar Edição</button>
+				</div>
+				<form id="clienteForm" class="form">
+					<div class="form-group">
+						<label for="clienteNome">Nome Completo *</label>
+						<input
+							type="text"
+							id="clienteNome"
+							required
+							placeholder="Ex: João da Silva" />
+					</div>
 
-			<label for="telefone1">Telefone 1:</label>
-			<input type="text" id="telefone1" placeholder="(00) 00000-0000" />
-			<label><input type="checkbox" id="whatsapp1" /> WhatsApp</label>
+					<div class="form-group">
+						<label for="clienteCpf">CPF *</label>
+						<input
+							type="text"
+							id="clienteCpf"
+							required
+							placeholder="000.000.000-00" />
+					</div>
 
-			<label for="telefone2">Telefone 2:</label>
-			<input type="text" id="telefone2" placeholder="(00) 00000-0000" />
-			<label><input type="checkbox" id="whatsapp2" /> WhatsApp</label>
+					<div class="form-group">
+						<label for="telefone1">Telefone Principal</label>
+						<input
+							type="tel"
+							id="telefone1"
+							placeholder="(00) 00000-0000" />
+						<label class="checkbox-label">
+							<input type="checkbox" id="whatsapp1" /> Possui WhatsApp
+						</label>
+					</div>
 
-			<label for="endereco">Endereço:</label>
-			<input type="text" id="endereco" placeholder="Rua, nº, bairro, cidade" />
+					<div class="form-group">
+						<label for="telefone2">Telefone Secundário</label>
+						<input
+							type="tel"
+							id="telefone2"
+							placeholder="(00) 00000-0000" />
+						<label class="checkbox-label">
+							<input type="checkbox" id="whatsapp2" /> Possui WhatsApp
+						</label>
+					</div>
 
-			<button type="submit" class="btn">Salvar Cliente</button>
-		</form>
+					<div class="form-group full-width">
+						<label for="endereco">Endereço Completo</label>
+						<input
+							type="text"
+							id="endereco"
+							placeholder="Rua, número, bairro, cidade" />
+					</div>
 
-		<h2>Clientes Cadastrados</h2>
-		<table id="clientesTable" class="tabela">
-			<thead>
-				<tr>
-					<th>Nome</th>
-					<th>CPF</th>
-					<th>Telefones</th>
-					<th>Endereço</th>
-					<th>Histórico</th>
-					<th>Editar</th>
-				</tr>
-			</thead>
-			<tbody></tbody>
-		</table>
+					<div class="form-actions">
+						<button type="submit" id="btnSalvarCliente" class="btn">💾 Salvar Cliente</button>
+					</div>
+				</form>
+			</div>
 
-		<a href="index.html" class="btn">⬅ Voltar</a>
+			<!-- Lista de Clientes -->
+			<div class="content-card">
+				<div class="content-card-title">
+					<span>Clientes Cadastrados</span>
+				</div>
+
+				<div class="table-responsive">
+					<table id="clientesTable" class="tabela">
+						<thead>
+							<tr>
+								<th>Nome</th>
+								<th>CPF</th>
+								<th>Telefones</th>
+								<th>Endereço</th>
+								<th style="text-align: center;">Histórico</th>
+								<th style="text-align: center;">Ações</th>
+							</tr>
+						</thead>
+						<tbody>
+							<!-- Preenchido via JS -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</main>
 
 		<script src="js/clientes.js"></script>
 	</body>

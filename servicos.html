@@ -2,56 +2,99 @@
 <html lang="pt-BR">
 	<head>
 		<meta charset="UTF-8" />
-		<title>Cadastro de Serviços</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+		<title>Cadastro de Serviços - Lava Jato</title>
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<h1>Cadastro de Serviços 🛠️</h1>
+		<!-- Header -->
+		<header class="site-header">
+			<div class="header-inner">
+				<a href="index.html" class="brand-wrapper">
+					<div class="brand-logo">🚗</div>
+					<div class="brand-title">
+						<span>Lava Jato</span>
+						<span class="brand-subtitle">Danilo Detailer</span>
+					</div>
+				</a>
+				<nav class="navbar">
+					<a href="index.html">🏠 Início</a>
+					<a href="pedidos.html">📋 Pedidos / O.S.</a>
+					<a href="clientes.html">👤 Clientes</a>
+					<a href="servicos.html" class="active">🛠️ Serviços</a>
+				</nav>
+			</div>
+		</header>
 
-		<nav class="navbar">
-			<a href="index.html">🏠 Início</a>
-			<a href="clientes.html">👤 Clientes</a>
-			<a href="servicos.html">🛠️ Serviços</a>
-			<a href="pedidos.html">📋 Pedidos</a>
-		</nav>
+		<!-- Main -->
+		<main class="container">
+			<div class="page-header">
+				<h1 class="page-title">Cadastro de Serviços</h1>
+				<p class="page-subtitle">Configure o catálogo de serviços, etapas e valores</p>
+			</div>
 
-		<form id="servicoForm" class="form">
-			<label for="servicoNome">Nome do Serviço:</label>
-			<input
-				type="text"
-				id="servicoNome"
-				required
-				placeholder="Ex: Polimento" />
+			<!-- Formulário de Cadastro -->
+			<div class="content-card">
+				<div class="content-card-title">
+					<span id="formServicoTitulo">Novo Serviço</span>
+					<button type="button" id="btnCancelarEdicaoServico" class="btn btn-secondary btn-sm" style="display: none;">Cancelar</button>
+				</div>
+				<form id="servicoForm" class="form">
+					<div class="form-group">
+						<label for="servicoNome">Nome do Serviço *</label>
+						<input
+							type="text"
+							id="servicoNome"
+							required
+							placeholder="Ex: Lavagem Completa + Cera" />
+					</div>
 
-			<label for="servicoDescricao">Descrição:</label>
-			<textarea
-				id="servicoDescricao"
-				placeholder="Produtos e etapas do serviço"></textarea>
+					<div class="form-group">
+						<label for="servicoPreco">Preço Base (R$) *</label>
+						<input
+							type="number"
+							id="servicoPreco"
+							step="0.01"
+							min="0"
+							required
+							placeholder="Ex: 80.00" />
+					</div>
 
-			<label for="servicoPreco">Preço (R$):</label>
-			<input
-				type="number"
-				id="servicoPreco"
-				step="0.01"
-				required
-				placeholder="Ex: 120.00" />
+					<div class="form-group full-width">
+						<label for="servicoDescricao">Descrição / Detalhes</label>
+						<textarea
+							id="servicoDescricao"
+							placeholder="Produtos utilizados, tempo estimado ou etapas incluídas"></textarea>
+					</div>
 
-			<button type="submit" class="btn">Salvar Serviço</button>
-		</form>
+					<div class="form-actions">
+						<button type="submit" id="btnSalvarServico" class="btn">💾 Salvar Serviço</button>
+					</div>
+				</form>
+			</div>
 
-		<h2>Serviços Cadastrados</h2>
-		<table id="servicosTable" class="tabela">
-			<thead>
-				<tr>
-					<th>Nome</th>
-					<th>Descrição</th>
-					<th>Preço (R$)</th>
-				</tr>
-			</thead>
-			<tbody></tbody>
-		</table>
-
-		<a href="index.html" class="btn">⬅ Voltar</a>
+			<!-- Tabela de Serviços -->
+			<div class="content-card">
+				<div class="content-card-title">
+					<span>Serviços Disponíveis</span>
+				</div>
+				<div class="table-responsive">
+					<table id="servicosTable" class="tabela">
+						<thead>
+							<tr>
+								<th>Nome</th>
+								<th>Preço</th>
+								<th>Descrição / Detalhes</th>
+								<th style="text-align: center;">Ações</th>
+							</tr>
+						</thead>
+						<tbody>
+							<!-- Preenchido via JS -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</main>
 
 		<script src="js/servicos.js"></script>
 	</body>

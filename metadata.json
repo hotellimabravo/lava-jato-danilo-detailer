@@ -1,0 +1,6 @@
+{
+  "name": "Sistema Lava Jato",
+  "description": "Sistema de gerenciamento para lava jato com cadastro de clientes, serviços e pedidos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

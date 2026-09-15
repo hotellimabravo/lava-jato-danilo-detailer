@@ -2,31 +2,112 @@
 <html lang="pt-BR">
 	<head>
 		<meta charset="UTF-8" />
-		<title>Sistema Lava Jato</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+		<title>Sistema Lava Jato - Danilo Detailer</title>
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<h1>Sistema Lava Jato 🚗💦</h1>
-		<nav class="navbar">
-			<a href="index.html">🏠 Início</a>
-			<a href="clientes.html">👤 Clientes</a>
-			<a href="servicos.html">🛠️ Serviços</a>
-			<a href="pedidos.html">📋 Pedidos</a>
-		</nav>
+		<!-- Top Navigation Header -->
+		<header class="site-header">
+			<div class="header-inner">
+				<a href="index.html" class="brand-wrapper">
+					<div class="brand-logo">🚗</div>
+					<div class="brand-title">
+						<span>Lava Jato</span>
+						<span class="brand-subtitle">Danilo Detailer</span>
+					</div>
+				</a>
+				<nav class="navbar">
+					<a href="index.html" class="active">🏠 Início</a>
+					<a href="pedidos.html">📋 Pedidos / O.S.</a>
+					<a href="clientes.html">👤 Clientes</a>
+					<a href="servicos.html">🛠️ Serviços</a>
+				</nav>
+			</div>
+		</header>
 
-		<!-- Painel de navegação -->
-		<div class="painel">
-			<a href="clientes.html" class="btn">Cadastro de Clientes</a>
-			<a href="servicos.html" class="btn">Cadastro de Serviços</a>
-			<a href="pedidos.html" class="btn">Pedidos / Ordens de Serviço</a>
-		</div>
+		<!-- Main Container -->
+		<main class="container">
+			<div class="page-header">
+				<h1 class="page-title">Painel de Controle</h1>
+				<p class="page-subtitle">Visão geral das atividades e faturamento de hoje</p>
+			</div>
 
-		<!-- Caixa do dia -->
-		<div class="caixa-dia">
-			<h2>Resumo do Dia 📊</h2>
-			<p id="totalServicos">Serviços de hoje: 0</p>
-			<p id="totalValor">Valor produzido: R$ 0,00</p>
-		</div>
+			<!-- Resumo do Dia / Dashboard Stats -->
+			<div class="dashboard-grid">
+				<div class="stat-card">
+					<div class="stat-icon blue">📊</div>
+					<div class="stat-info">
+						<span class="stat-label">Serviços Hoje</span>
+						<span class="stat-value" id="totalServicos">0</span>
+					</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-icon green">💰</div>
+					<div class="stat-info">
+						<span class="stat-label">Valor Produzido</span>
+						<span class="stat-value" id="totalValor">R$ 0,00</span>
+					</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-icon amber">👥</div>
+					<div class="stat-info">
+						<span class="stat-label">Clientes Cadastrados</span>
+						<span class="stat-value" id="totalClientes">0</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Ações Rápidas -->
+			<div class="section-title">⚡ Acesso Rápido</div>
+			<div class="painel">
+				<a href="pedidos.html" class="quick-action-card">
+					<div class="quick-action-icon">📋</div>
+					<div class="quick-action-text">
+						<span class="quick-action-title">Nova Ordem / Pedido</span>
+						<span class="quick-action-desc">Registrar atendimento de hoje</span>
+					</div>
+				</a>
+				<a href="clientes.html" class="quick-action-card">
+					<div class="quick-action-icon">👤</div>
+					<div class="quick-action-text">
+						<span class="quick-action-title">Cadastro de Clientes</span>
+						<span class="quick-action-desc">Consultar e adicionar contatos</span>
+					</div>
+				</a>
+				<a href="servicos.html" class="quick-action-card">
+					<div class="quick-action-icon">🛠️</div>
+					<div class="quick-action-text">
+						<span class="quick-action-title">Tabela de Serviços</span>
+						<span class="quick-action-desc">Gerenciar preços e etapas</span>
+					</div>
+				</a>
+			</div>
+
+			<!-- Histórico Rápido de Hoje -->
+			<div class="content-card">
+				<div class="content-card-title">
+					<span>Últimos Pedidos Registrados</span>
+					<a href="pedidos.html" class="btn btn-secondary btn-sm">Ver Todos</a>
+				</div>
+				<div class="table-responsive">
+					<table class="tabela" id="tabelaHoje">
+						<thead>
+							<tr>
+								<th>Cliente</th>
+								<th>Serviços</th>
+								<th>Valor</th>
+								<th>Pagamento</th>
+								<th>Data</th>
+							</tr>
+						</thead>
+						<tbody id="listaHojeCorpo">
+							<!-- Preenchido via JS -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</main>
 
 		<script src="js/index.js"></script>
 	</body>

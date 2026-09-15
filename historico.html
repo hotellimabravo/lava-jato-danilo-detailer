@@ -2,33 +2,83 @@
 <html lang="pt-BR">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Histórico do Cliente</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+		<title>Histórico do Cliente - Lava Jato</title>
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<h1>Histórico do Cliente</h1>
+		<!-- Header -->
+		<header class="site-header">
+			<div class="header-inner">
+				<a href="index.html" class="brand-wrapper">
+					<div class="brand-logo">🚗</div>
+					<div class="brand-title">
+						<span>Lava Jato</span>
+						<span class="brand-subtitle">Danilo Detailer</span>
+					</div>
+				</a>
+				<nav class="navbar">
+					<a href="index.html">🏠 Início</a>
+					<a href="pedidos.html">📋 Pedidos / O.S.</a>
+					<a href="clientes.html" class="active">👤 Clientes</a>
+					<a href="servicos.html">🛠️ Serviços</a>
+				</nav>
+			</div>
+		</header>
 
-		<nav class="navbar">
-			<a href="index.html">🏠 Início</a>
-			<a href="clientes.html">👤 Clientes</a>
-			<a href="servicos.html">🛠️ Serviços</a>
-			<a href="pedidos.html">📋 Pedidos</a>
-		</nav>
+		<!-- Main -->
+		<main class="container">
+			<div class="page-header">
+				<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+					<div>
+						<h1 class="page-title">Histórico de Atendimentos</h1>
+						<p class="page-subtitle" id="clienteNome">Carregando...</p>
+					</div>
+					<a href="clientes.html" class="btn btn-secondary btn-sm">⬅ Voltar aos Clientes</a>
+				</div>
+			</div>
 
-		<h2 id="clienteNome"></h2>
+			<!-- Estatísticas Rápidas do Cliente -->
+			<div class="dashboard-grid">
+				<div class="stat-card">
+					<div class="stat-icon blue">📋</div>
+					<div class="stat-info">
+						<span class="stat-label">Total de Visitas</span>
+						<span class="stat-value" id="clienteTotalVisitas">0</span>
+					</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-icon green">💰</div>
+					<div class="stat-info">
+						<span class="stat-label">Total Investido</span>
+						<span class="stat-value" id="clienteTotalGasto">R$ 0,00</span>
+					</div>
+				</div>
+			</div>
 
-		<table border="1" id="historicoTable" class="tabela">
-			<thead>
-				<tr>
-					<th>Data</th>
-					<th>Serviços</th>
-					<th>Forma de Pagamento</th>
-				</tr>
-			</thead>
-			<tbody></tbody>
-		</table>
-		<a href="clientes.html" class="btn">⬅ Voltar</a>
+			<!-- Tabela com Atendimentos -->
+			<div class="content-card">
+				<div class="content-card-title">
+					<span>Registros de Serviços Realizados</span>
+				</div>
+
+				<div class="table-responsive">
+					<table id="historicoTable" class="tabela">
+						<thead>
+							<tr>
+								<th>Data</th>
+								<th>Serviços Realizados</th>
+								<th>Valor</th>
+								<th>Forma de Pagamento</th>
+							</tr>
+						</thead>
+						<tbody>
+							<!-- Preenchido via JS -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</main>
 
 		<script src="js/historico.js"></script>
 	</body>
