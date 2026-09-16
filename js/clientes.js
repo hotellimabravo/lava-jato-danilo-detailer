@@ -1,5 +1,4 @@
 const inputNome = document.querySelector('#clienteNome');
-const inputCPF = document.querySelector('#clienteCpf');
 const inputTelefone1 = document.querySelector('#telefone1');
 const inputTelefone2 = document.querySelector('#telefone2');
 const inputWhatsApp1 = document.querySelector('#whatsapp1');
@@ -9,14 +8,38 @@ const formCardTitle = document.querySelector('#formCardTitle');
 const btnCancelarEdicao = document.querySelector('#btnCancelarEdicao');
 const btnSalvar = document.querySelector('#btnSalvarCliente');
 
+// Função utilitária para aplicar máscara de telefone (00) 00000-0000 ou (00) 0000-0000
+function mascararTelefone(input) {
+	if (!input) return;
+	input.addEventListener('input', (e) => {
+		let v = e.target.value.replace(/\D/g, '');
+		if (v.length > 11) v = v.substring(0, 11);
+		if (v.length > 10) {
+			e.target.value = `(${v.substring(0, 2)}) ${v.substring(2, 7)}-${v.substring(7)}`;
+		} else if (v.length > 6) {
+			e.target.value = `(${v.substring(0, 2)}) ${v.substring(2, 6)}-${v.substring(6)}`;
+		} else if (v.length > 2) {
+			e.target.value = `(${v.substring(0, 2)}) ${v.substring(2)}`;
+		} else if (v.length > 0) {
+			e.target.value = `(${v}`;
+		} else {
+			e.target.value = '';
+		}
+	});
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	const form = document.getElementById('clienteForm');
 	const tabela = document.querySelector('#clientesTable tbody');
 	let editIndex = null; // Índice do cliente a ser editado
 
+	mascararTelefone(inputTelefone1);
+	mascararTelefone(inputTelefone2);
+
 	function resetFormState() {
 		editIndex = null;
 		form.reset();
+		if (inputWhatsApp1) inputWhatsApp1.checked = true;
 		if (formCardTitle) formCardTitle.textContent = 'Novo Cliente';
 		if (btnSalvar) btnSalvar.textContent = '💾 Salvar Cliente';
 		if (btnCancelarEdicao) btnCancelarEdicao.style.display = 'none';
@@ -32,22 +55,49 @@ document.addEventListener('DOMContentLoaded', () => {
 		e.preventDefault();
 
 		const nome = inputNome.value.trim();
-		const cpf = inputCPF.value.trim();
 		const tel1 = inputTelefone1.value.trim();
 		const wpp1 = inputWhatsApp1.checked ? '✅' : '❌';
 		const tel2 = inputTelefone2.value.trim();
 		const wpp2 = inputWhatsApp2.checked ? '✅' : '❌';
 		const endereco = inputEndereco.value.trim();
 
+		if (!tel1) {
+			alert('Por favor, informe o telefone principal do cliente. Ele é utilizado como código único de identificação.');
+			inputTelefone1.focus();
+			return;
+		}
+
 		const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
 
+		// Verificar duplicidade de código/telefone em novos cadastros
+		if (editIndex === null) {
+			const telLimpoNovo = tel1.replace(/\D/g, '');
+			const clienteExistente = clientes.find(c => (c.tel1 || '').replace(/\D/g, '') === telLimpoNovo);
+			if (clienteExistente) {
+				const confirmar = confirm(`Já existe um cliente cadastrado com este telefone (${clienteExistente.nome}). Deseja cadastrar mesmo assim?`);
+				if (!confirmar) {
+					inputTelefone1.focus();
+					return;
+				}
+			}
+		}
+
 		if (editIndex !== null) {
-			// Editando cliente existente
-			clientes[editIndex] = { nome, cpf, tel1, wpp1, tel2, wpp2, endereco };
+			// Editando cliente existente (preserva outros campos se existirem)
+			const clienteAtual = clientes[editIndex] || {};
+			clientes[editIndex] = {
+				...clienteAtual,
+				nome,
+				tel1,
+				wpp1,
+				tel2,
+				wpp2,
+				endereco
+			};
 			editIndex = null;
 		} else {
 			// Adicionando novo cliente
-			clientes.push({ nome, cpf, tel1, wpp1, tel2, wpp2, endereco });
+			clientes.push({ nome, tel1, wpp1, tel2, wpp2, endereco });
 		}
 
 		localStorage.setItem('clientes', JSON.stringify(clientes));
@@ -74,16 +124,16 @@ document.addEventListener('DOMContentLoaded', () => {
 			const tr = document.createElement('tr');
 			
 			const tel1Html = c.tel1 
-				? `${c.tel1} ${c.wpp1 === '✅' ? '<span class="badge badge-whatsapp">WhatsApp</span>' : ''}` 
-				: '-';
+				? `<strong>${c.tel1}</strong> ${c.wpp1 === '✅' ? '<span class="badge badge-whatsapp">WhatsApp</span>' : ''}` 
+				: '<span style="color:var(--text-muted);">-</span>';
 			const tel2Html = c.tel2 
-				? `<br><small style="color:var(--text-muted);">${c.tel2} ${c.wpp2 === '✅' ? '<span class="badge badge-whatsapp">WhatsApp</span>' : ''}</small>` 
-				: '';
+				? `${c.tel2} ${c.wpp2 === '✅' ? '<span class="badge badge-whatsapp">WhatsApp</span>' : ''}` 
+				: '<span style="color:var(--text-muted);">-</span>';
 
 			tr.innerHTML = `
 				<td id="nomeSalvo"><strong>${c.nome || '-'}</strong></td>
-				<td id="cpfSalvo">${c.cpf || '-'}</td>
-				<td id="telefonesSalvos">${tel1Html}${tel2Html}</td>
+				<td id="telefonesSalvos">${tel1Html}</td>
+				<td id="telefone2Salvo">${tel2Html}</td>
 				<td id="enderecoSalvo">${c.endereco || '<span style="color:var(--text-muted);">-</span>'}</td>
 				<td style="text-align: center;">
 					<a class="btn btn-secondary btn-sm" href="historico.html?cliente=${encodeURIComponent(c.nome)}">
@@ -115,11 +165,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 				// Preenche o formulário com os dados do cliente
 				inputNome.value = cliente.nome || '';
-				inputCPF.value = cliente.cpf || '';
 				inputTelefone1.value = cliente.tel1 || '';
-				inputWhatsApp1.checked = cliente.wpp1 === '✅';
+				inputWhatsApp1.checked = cliente.wpp1 === '✅' || cliente.wpp1 === true;
 				inputTelefone2.value = cliente.tel2 || '';
-				inputWhatsApp2.checked = cliente.wpp2 === '✅';
+				inputWhatsApp2.checked = cliente.wpp2 === '✅' || cliente.wpp2 === true;
 				inputEndereco.value = cliente.endereco || '';
 
 				editIndex = index;
@@ -141,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				const cliente = clientes[index];
 				if (!cliente) return;
 
-				if (confirm(`Deseja realmente remover o cliente "${cliente.nome}"?`)) {
+				if (confirm(`Deseja realmente remover o cliente "${cliente.nome}" (${cliente.tel1 || 'Sem telefone'})?`)) {
 					clientes.splice(index, 1);
 					localStorage.setItem('clientes', JSON.stringify(clientes));
 					if (editIndex === index) {

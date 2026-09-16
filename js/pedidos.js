@@ -159,21 +159,28 @@ if (pedidoServico) {
 	});
 }
 
-// Autocomplete de clientes
+// Autocomplete de clientes (por Nome ou Telefone/Código)
 if (pedidoCliente && sugestoesDiv) {
 	pedidoCliente.addEventListener('input', () => {
 		const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
 		const termo = pedidoCliente.value.trim().toLowerCase();
+		const termoApenasDigitos = termo.replace(/\D/g, '');
 		sugestoesDiv.innerHTML = '';
 		if (termo === '') return;
 
-		const resultados = clientes.filter(
-			(c) => c.nome && c.nome.toLowerCase().includes(termo)
-		);
+		const resultados = clientes.filter((c) => {
+			const nomeMatch = c.nome && c.nome.toLowerCase().includes(termo);
+			const tel1Limpo = (c.tel1 || '').replace(/\D/g, '');
+			const tel2Limpo = (c.tel2 || '').replace(/\D/g, '');
+			const telMatch = termoApenasDigitos.length > 0 && (
+				tel1Limpo.includes(termoApenasDigitos) || tel2Limpo.includes(termoApenasDigitos)
+			);
+			return nomeMatch || telMatch;
+		});
 
 		if (resultados.length === 0) {
 			const div = document.createElement('div');
-			div.textContent = 'Nenhum cliente cadastrado com este nome';
+			div.textContent = 'Nenhum cliente cadastrado com este nome ou telefone';
 			div.classList.add('sugestaoItem');
 			div.style.color = 'var(--text-muted)';
 			div.style.cursor = 'default';
@@ -183,7 +190,8 @@ if (pedidoCliente && sugestoesDiv) {
 
 		resultados.forEach((c) => {
 			const div = document.createElement('div');
-			div.textContent = `${c.nome} ${c.tel1 ? '• ' + c.tel1 : ''}`;
+			const telDestaque = c.tel1 ? ` • 📞 ${c.tel1}` : '';
+			div.innerHTML = `<strong>${c.nome}</strong>${telDestaque}`;
 			div.classList.add('sugestaoItem');
 			div.addEventListener('click', () => {
 				pedidoCliente.value = c.nome;
@@ -463,7 +471,6 @@ if (pedidoForm) {
 		if (!clienteExiste && clienteNome) {
 			clientes.push({
 				nome: clienteNome,
-				cpf: '',
 				tel1: '',
 				wpp1: '❌',
 				tel2: '',

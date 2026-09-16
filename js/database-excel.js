@@ -38,11 +38,10 @@ class DatabaseExcelService {
 		// 1. Aba Clientes
 		const dadosClientes = clientes.map(c => ({
 			'Nome do Cliente': c.nome || '',
-			'CPF': c.cpf || '',
-			'Telefone 1': c.tel1 || '',
-			'WhatsApp 1': c.wpp1 || '',
-			'Telefone 2': c.tel2 || '',
-			'WhatsApp 2': c.wpp2 || '',
+			'Telefone (Código ID)': c.tel1 || '',
+			'WhatsApp Principal': c.wpp1 || '',
+			'Telefone Secundário': c.tel2 || '',
+			'WhatsApp Secundário': c.wpp2 || '',
 			'Endereço': c.endereco || ''
 		}));
 
@@ -139,8 +138,8 @@ class DatabaseExcelService {
 		}
 
 		const modeloClientes = [
-			{ 'Nome do Cliente': 'João da Silva', 'CPF': '123.456.789-00', 'Telefone 1': '(11) 99999-1111', 'WhatsApp 1': '✅', 'Telefone 2': '', 'WhatsApp 2': '❌', 'Endereço': 'Rua das Palmeiras, 100' },
-			{ 'Nome do Cliente': 'Maria Oliveira', 'CPF': '234.567.890-11', 'Telefone 1': '(11) 98888-2222', 'WhatsApp 1': '✅', 'Telefone 2': '', 'WhatsApp 2': '❌', 'Endereço': 'Av. Central, 450' }
+			{ 'Nome do Cliente': 'João da Silva', 'Telefone (Código ID)': '(11) 99999-1111', 'WhatsApp Principal': '✅', 'Telefone Secundário': '', 'WhatsApp Secundário': '❌', 'Endereço': 'Rua das Palmeiras, 100' },
+			{ 'Nome do Cliente': 'Maria Oliveira', 'Telefone (Código ID)': '(11) 98888-2222', 'WhatsApp Principal': '✅', 'Telefone Secundário': '', 'WhatsApp Secundário': '❌', 'Endereço': 'Av. Central, 450' }
 		];
 
 		const modeloServicos = [
@@ -203,13 +202,12 @@ class DatabaseExcelService {
 						const json = XLSX.utils.sheet_to_json(sheet);
 						novosClientes = json.map(r => ({
 							nome: String(r['Nome do Cliente'] || r['Nome'] || r['nome'] || '').trim(),
-							cpf: String(r['CPF'] || r['cpf'] || '').trim(),
-							tel1: String(r['Telefone 1'] || r['Telefone'] || r['tel1'] || '').trim(),
-							wpp1: String(r['WhatsApp 1'] || r['WhatsApp'] || r['wpp1'] || '❌').trim(),
-							tel2: String(r['Telefone 2'] || r['tel2'] || '').trim(),
-							wpp2: String(r['WhatsApp 2'] || r['wpp2'] || '❌').trim(),
+							tel1: String(r['Telefone (Código ID)'] || r['Telefone 1'] || r['Telefone'] || r['tel1'] || r['telefone'] || '').trim(),
+							wpp1: String(r['WhatsApp Principal'] || r['WhatsApp 1'] || r['WhatsApp'] || r['wpp1'] || '❌').trim(),
+							tel2: String(r['Telefone Secundário'] || r['Telefone 2'] || r['tel2'] || '').trim(),
+							wpp2: String(r['WhatsApp Secundário'] || r['WhatsApp 2'] || r['wpp2'] || '❌').trim(),
 							endereco: String(r['Endereço'] || r['Endereco'] || r['endereco'] || '').trim()
-						})).filter(c => c.nome.length > 0);
+						})).filter(c => c.nome.length > 0 || c.tel1.length > 0);
 						resultado.clientesLidos = novosClientes.length;
 					}
 

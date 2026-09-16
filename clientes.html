@@ -56,31 +56,23 @@
 					</div>
 
 					<div class="form-group">
-						<label for="clienteCpf">CPF *</label>
-						<input
-							type="text"
-							id="clienteCpf"
-							required
-							placeholder="000.000.000-00" />
-					</div>
-
-					<div class="form-group">
-						<label for="telefone1">Telefone Principal</label>
+						<label for="telefone1">Telefone / WhatsApp (Código do Cliente) *</label>
 						<input
 							type="tel"
 							id="telefone1"
+							required
 							placeholder="(00) 00000-0000" />
 						<label class="checkbox-label">
-							<input type="checkbox" id="whatsapp1" /> Possui WhatsApp
+							<input type="checkbox" id="whatsapp1" checked /> Possui WhatsApp
 						</label>
 					</div>
 
 					<div class="form-group">
-						<label for="telefone2">Telefone Secundário</label>
+						<label for="telefone2">Telefone Secundário / Recado</label>
 						<input
 							type="tel"
 							id="telefone2"
-							placeholder="(00) 00000-0000" />
+							placeholder="(00) 00000-0000 (opcional)" />
 						<label class="checkbox-label">
 							<input type="checkbox" id="whatsapp2" /> Possui WhatsApp
 						</label>
@@ -91,7 +83,7 @@
 						<input
 							type="text"
 							id="endereco"
-							placeholder="Rua, número, bairro, cidade" />
+							placeholder="Rua, número, bairro, cidade (opcional)" />
 					</div>
 
 					<div class="form-actions">
@@ -111,8 +103,8 @@
 						<thead>
 							<tr>
 								<th>Nome</th>
-								<th>CPF</th>
-								<th>Telefones</th>
+								<th>Telefone (Código ID)</th>
+								<th>Telefone Secundário</th>
 								<th>Endereço</th>
 								<th style="text-align: center;">Histórico</th>
 								<th style="text-align: center;">Ações</th>

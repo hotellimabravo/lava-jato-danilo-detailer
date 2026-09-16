@@ -10,7 +10,6 @@ clienteForm.addEventListener('submit', (e) => {
 	e.preventDefault();
 	const cliente = {
 		nome: document.getElementById('nome').value,
-		cpf: document.getElementById('cpf').value,
 		telefone1: document.getElementById('telefone1').value,
 		whatsapp1: document.getElementById('whatsapp1').checked,
 		telefone2: document.getElementById('telefone2').value,
@@ -26,7 +25,7 @@ function atualizarClientes() {
 	clientesTable.innerHTML = '';
 	clientes.forEach((c) => {
 		const tr = document.createElement('tr');
-		tr.innerHTML = `<td>${c.nome}</td><td>${c.cpf}</td><td>${c.telefone1} ${
+		tr.innerHTML = `<td>${c.nome}</td><td>${c.telefone1} ${
 			c.whatsapp1 ? '📱' : ''
 		}</td><td>${c.telefone2} ${c.whatsapp2 ? '📱' : ''}</td><td>${
 			c.endereco
