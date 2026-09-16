@@ -59,6 +59,7 @@ const modalReciboTitulo = document.getElementById('modalReciboTitulo');
 const modalReciboFecharBtn = document.getElementById('modalReciboFecharBtn');
 const modalReciboFecharInferiorBtn = document.getElementById('modalReciboFecharInferiorBtn');
 const modalReciboImprimirBtn = document.getElementById('modalReciboImprimirBtn');
+const modalReciboBaixarBtn = document.getElementById('modalReciboBaixarBtn');
 
 let pedidoSelecionadoParaRecibo = null;
 let pedidoSelecionadoParaEncerrar = null;
@@ -512,6 +513,22 @@ if (modalReciboImprimirBtn) {
 	modalReciboImprimirBtn.addEventListener('click', () => {
 		if (pedidoSelecionadoParaRecibo && typeof ReciboService !== 'undefined') {
 			ReciboService.imprimirCupom(pedidoSelecionadoParaRecibo);
+		}
+	});
+}
+
+if (modalReciboBaixarBtn) {
+	modalReciboBaixarBtn.addEventListener('click', async () => {
+		if (pedidoSelecionadoParaRecibo && typeof ReciboService !== 'undefined') {
+			const textoOriginal = modalReciboBaixarBtn.innerHTML;
+			modalReciboBaixarBtn.innerHTML = '⏳ Gerando...';
+			modalReciboBaixarBtn.disabled = true;
+			try {
+				await ReciboService.baixarImagemRecibo(pedidoSelecionadoParaRecibo);
+			} finally {
+				modalReciboBaixarBtn.innerHTML = textoOriginal;
+				modalReciboBaixarBtn.disabled = false;
+			}
 		}
 	});
 }

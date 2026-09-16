@@ -110,13 +110,18 @@
 						<!-- Renderizado dinamicamente via ReciboService -->
 					</div>
 				</div>
-				<div class="modal-footer" style="padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; border-top: 1px solid var(--border-color);">
+				<div class="modal-footer" style="padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
 					<button type="button" class="btn btn-secondary" id="modalReciboFecharInferiorBtn">
 						Fechar
 					</button>
-					<button type="button" class="btn" id="modalReciboImprimirBtn" style="background-color: var(--primary); display: inline-flex; align-items: center; gap: 6px;">
-						🖨️ Imprimir Recibo Agora
-					</button>
+					<div class="recibo-modal-actions">
+						<button type="button" class="btn-recibo-download" id="modalReciboBaixarBtn" title="Baixar comprovante em imagem PNG para enviar por WhatsApp ou E-mail">
+							📥 (PNG)
+						</button>
+						<button type="button" class="btn" id="modalReciboImprimirBtn" style="background-color: var(--primary); display: inline-flex; align-items: center; gap: 6px;" title="Enviar direto para impressora térmica ou convencional">
+							🖨️ Imprimir
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>

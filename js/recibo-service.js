@@ -413,6 +413,474 @@ const ReciboService = {
 	},
 
 	/**
+	 * Gera imagem PNG nítida do cupom fiscal via Canvas sem dependências externas
+	 */
+	gerarImagemCupomAsync: function (pedido) {
+		return new Promise((resolve, reject) => {
+			try {
+				const config = (typeof BrandService !== 'undefined' && BrandService.getConfig)
+					? BrandService.getConfig()
+					: (JSON.parse(localStorage.getItem('config_negocio')) || {});
+
+				const nomeFantasia = (config.nomeEstabelecimento && config.nomeEstabelecimento.trim())
+					? config.nomeEstabelecimento.trim().toUpperCase()
+					: 'SEU NEGÓCIO';
+				const razaoSocial = (config.razaoSocial && config.razaoSocial.trim())
+					? config.razaoSocial.trim()
+					: '';
+				const cnpj = config.cnpj || '';
+				const telefone = config.telefone || '';
+				const endereco = config.endereco || '';
+
+				const dataEmissao = this.formatarData(pedido.dataEncerramento || pedido.data || '');
+				const horaEmissao = pedido.horaEncerramento || pedido.horaEntrada || '--:--';
+				const dataEntrada = this.formatarData(pedido.data || '');
+				const horaEntrada = pedido.horaEntrada || '--:--';
+
+				const numOS = (pedido.id || '').replace(/^os_/, '').slice(-6) || '000001';
+				const valorFinal = parseFloat(pedido.valor || 0);
+
+				const servicosLista = (pedido.servicos || '')
+					.split(',')
+					.map(s => s.trim())
+					.filter(Boolean);
+
+				const servicosCadastrados = JSON.parse(localStorage.getItem('servicos')) || [];
+
+				const placa = pedido.placa || 'SEM IDENTIFICAÇÃO';
+				const cor = pedido.cor ? pedido.cor.toUpperCase() : '';
+				const modelo = pedido.modelo ? pedido.modelo.toUpperCase() : '';
+				let linhaVeiculo = placa;
+				if (cor || modelo) {
+					linhaVeiculo += ` (${[modelo, cor].filter(Boolean).join(' - ')})`;
+				}
+
+				const clienteNome = (pedido.cliente || 'CONSUMIDOR NÃO IDENTIFICADO').toUpperCase();
+				const formaPgto = (pedido.formaPagamento || 'Pix').toUpperCase();
+
+				// Dimensões térmicas padrão em alta resolução (escala 2x para nitidez)
+				const larguraBase = 380;
+				const paddingX = 20;
+				const larguraUtil = larguraBase - (paddingX * 2);
+
+				// Criação do canvas
+				const canvas = document.createElement('canvas');
+				const ctx = canvas.getContext('2d');
+
+				// Primeira passada para calcular altura exata
+				let y = 24;
+
+				function adicionarEspaco(px) {
+					y += px;
+				}
+
+				// Topo
+				y += 30; // Nome
+				if (razaoSocial) y += 18;
+				if (cnpj) y += 16;
+				if (endereco) y += 16;
+				if (telefone) y += 16;
+				y += 18; // divisor
+
+				// Documento
+				y += 20; // COMPROVANTE
+				y += 16; // NÃO FISCAL
+				y += 18; // divisor
+
+				// Metadados
+				y += 18; // O.S.
+				y += 18; // Emissão
+				y += 18; // Entrada
+				y += 18; // Placa
+				y += 18; // Cliente
+				y += 18; // divisor
+
+				// Itens Cabeçalho
+				y += 20;
+				y += 14; // dotted
+				const totalItens = Math.max(servicosLista.length, 1);
+				y += (totalItens * 22);
+				y += 18; // divisor
+
+				// Totais
+				y += 26; // TOTAL
+				y += 18; // Forma Pagamento
+				y += 18; // Valor Recebido
+				y += 18; // Situação
+				y += 20; // divisor
+
+				// Rodapé
+				y += 22; // Agradecimento
+				y += 18; // Volte sempre
+				y += 45; // Assinatura
+				y += 20; // Timestamp
+				y += 25; // margem final
+
+				const alturaTotal = Math.max(y, 450);
+
+				// Configurar tamanho real e DPI alto (scale 2x)
+				const escala = 2;
+				canvas.width = larguraBase * escala;
+				canvas.height = alturaTotal * escala;
+				ctx.scale(escala, escala);
+
+				// Fundo branco papel cupom
+				ctx.fillStyle = '#ffffff';
+				ctx.fillRect(0, 0, larguraBase, alturaTotal);
+
+				// Borda sutil de papel
+				ctx.strokeStyle = '#e2e8f0';
+				ctx.lineWidth = 1;
+				ctx.strokeRect(1, 1, larguraBase - 2, alturaTotal - 2);
+
+				// Cores e Fontes
+				ctx.fillStyle = '#0f172a';
+				ctx.textAlign = 'center';
+
+				// 1. Cabeçalho
+				let cursorY = 28;
+				ctx.font = 'bold 16px "Courier New", Courier, monospace';
+				ctx.fillText(nomeFantasia, larguraBase / 2, cursorY);
+				cursorY += 18;
+
+				if (razaoSocial) {
+					ctx.font = '600 11px "Courier New", Courier, monospace';
+					ctx.fillStyle = '#334155';
+					ctx.fillText(razaoSocial, larguraBase / 2, cursorY);
+					cursorY += 16;
+				}
+
+				ctx.font = '10px "Courier New", Courier, monospace';
+				ctx.fillStyle = '#475569';
+				if (cnpj) {
+					ctx.fillText(`CNPJ/CPF: ${cnpj}`, larguraBase / 2, cursorY);
+					cursorY += 15;
+				}
+				if (endereco) {
+					ctx.fillText(endereco, larguraBase / 2, cursorY);
+					cursorY += 15;
+				}
+				if (telefone) {
+					ctx.fillText(`TEL: ${telefone}`, larguraBase / 2, cursorY);
+					cursorY += 15;
+				}
+
+				cursorY += 6;
+
+				// Linha tracejada
+				function desenharLinhaTracejada(yPos) {
+					ctx.beginPath();
+					ctx.strokeStyle = '#0f172a';
+					ctx.lineWidth = 1;
+					ctx.setLineDash([4, 3]);
+					ctx.moveTo(paddingX, yPos);
+					ctx.lineTo(larguraBase - paddingX, yPos);
+					ctx.stroke();
+					ctx.setLineDash([]);
+				}
+
+				function desenharLinhaSolida(yPos) {
+					ctx.beginPath();
+					ctx.strokeStyle = '#0f172a';
+					ctx.lineWidth = 1.2;
+					ctx.moveTo(paddingX, yPos);
+					ctx.lineTo(larguraBase - paddingX, yPos);
+					ctx.stroke();
+				}
+
+				function desenharLinhaPontilhada(yPos) {
+					ctx.beginPath();
+					ctx.strokeStyle = '#64748b';
+					ctx.lineWidth = 1;
+					ctx.setLineDash([2, 2]);
+					ctx.moveTo(paddingX, yPos);
+					ctx.lineTo(larguraBase - paddingX, yPos);
+					ctx.stroke();
+					ctx.setLineDash([]);
+				}
+
+				desenharLinhaTracejada(cursorY);
+				cursorY += 16;
+
+				// Título do Documento
+				ctx.fillStyle = '#000000';
+				ctx.font = 'bold 12px "Courier New", Courier, monospace';
+				ctx.textAlign = 'center';
+				ctx.fillText('COMPROVANTE DE PAGAMENTO / RECIBO', larguraBase / 2, cursorY);
+				cursorY += 14;
+				ctx.font = '10px "Courier New", Courier, monospace';
+				ctx.fillStyle = '#64748b';
+				ctx.fillText('DOCUMENTO NÃO FISCAL', larguraBase / 2, cursorY);
+				cursorY += 12;
+
+				desenharLinhaTracejada(cursorY);
+				cursorY += 18;
+
+				// Metadados O.S. (alinhamento esquerda/direita)
+				function desenharLinhaDupla(rotulo, valor, destaque = false, corValor = '#0f172a') {
+					ctx.font = destaque ? 'bold 11px "Courier New", monospace' : '600 11px "Courier New", monospace';
+					ctx.fillStyle = '#334155';
+					ctx.textAlign = 'left';
+					ctx.fillText(rotulo, paddingX, cursorY);
+
+					ctx.font = destaque ? 'bold 11px "Courier New", monospace' : '11px "Courier New", monospace';
+					ctx.fillStyle = corValor;
+					ctx.textAlign = 'right';
+					ctx.fillText(valor, larguraBase - paddingX, cursorY);
+					cursorY += 18;
+				}
+
+				desenharLinhaDupla('ORDEM DE SERVIÇO:', `#${numOS}`, true);
+				desenharLinhaDupla('EMISSÃO / SAÍDA:', `${dataEmissao} às ${horaEmissao}`);
+				desenharLinhaDupla('ENTRADA:', `${dataEntrada} às ${horaEntrada}`);
+				desenharLinhaDupla('ITEM / PLACA:', linhaVeiculo, true);
+				desenharLinhaDupla('CLIENTE:', clienteNome);
+
+				cursorY += 4;
+				desenharLinhaSolida(cursorY);
+				cursorY += 16;
+
+				// Cabeçalho de Itens
+				ctx.font = 'bold 11px "Courier New", monospace';
+				ctx.fillStyle = '#000000';
+				ctx.textAlign = 'left';
+				ctx.fillText('ITEM  DESCRIÇÃO', paddingX, cursorY);
+				ctx.textAlign = 'right';
+				ctx.fillText('VALOR', larguraBase - paddingX, cursorY);
+				cursorY += 8;
+
+				desenharLinhaPontilhada(cursorY);
+				cursorY += 16;
+
+				// Linhas de Itens
+				if (servicosLista.length > 0) {
+					servicosLista.forEach((itemNome, idx) => {
+						const numFmt = String(idx + 1).padStart(2, '0');
+						const itemCadastrado = servicosCadastrados.find(
+							sc => sc.nome && sc.nome.trim().toLowerCase() === itemNome.toLowerCase()
+						);
+						const precoUnit = itemCadastrado ? parseFloat(itemCadastrado.preco || 0) : null;
+						const precoTexto = precoUnit !== null ? `R$ ${precoUnit.toFixed(2)}` : '';
+
+						ctx.font = '11px "Courier New", monospace';
+						ctx.fillStyle = '#0f172a';
+						ctx.textAlign = 'left';
+						
+						// Trunca texto se for muito longo
+						let nomeExibicao = itemNome;
+						if (nomeExibicao.length > 24) {
+							nomeExibicao = nomeExibicao.substring(0, 22) + '..';
+						}
+						ctx.fillText(`${numFmt}  ${nomeExibicao}`, paddingX, cursorY);
+
+						ctx.textAlign = 'right';
+						ctx.font = 'bold 11px "Courier New", monospace';
+						ctx.fillText(precoTexto, larguraBase - paddingX, cursorY);
+
+						cursorY += 20;
+					});
+				} else {
+					ctx.font = '11px "Courier New", monospace';
+					ctx.fillStyle = '#0f172a';
+					ctx.textAlign = 'left';
+					ctx.fillText('01  Serviços Prestados', paddingX, cursorY);
+					ctx.textAlign = 'right';
+					ctx.font = 'bold 11px "Courier New", monospace';
+					ctx.fillText(`R$ ${valorFinal.toFixed(2)}`, larguraBase - paddingX, cursorY);
+					cursorY += 20;
+				}
+
+				cursorY += 4;
+				desenharLinhaSolida(cursorY);
+				cursorY += 18;
+
+				// Totais
+				ctx.font = 'bold 14px "Courier New", monospace';
+				ctx.fillStyle = '#000000';
+				ctx.textAlign = 'left';
+				ctx.fillText('VALOR TOTAL:', paddingX, cursorY);
+				ctx.textAlign = 'right';
+				ctx.fillText(`R$ ${valorFinal.toFixed(2)}`, larguraBase - paddingX, cursorY);
+				cursorY += 20;
+
+				desenharLinhaDupla('FORMA DE PAGAMENTO:', formaPgto, true);
+				desenharLinhaDupla('VALOR RECEBIDO:', `R$ ${valorFinal.toFixed(2)}`);
+				desenharLinhaDupla('SITUAÇÃO:', 'QUITADO / PAGO ✅', true, '#047857');
+
+				cursorY += 4;
+				desenharLinhaTracejada(cursorY);
+				cursorY += 18;
+
+				// Rodapé
+				ctx.textAlign = 'center';
+				ctx.font = 'bold 11px "Courier New", monospace';
+				ctx.fillStyle = '#000000';
+				ctx.fillText('OBRIGADO PELA PREFERÊNCIA!', larguraBase / 2, cursorY);
+				cursorY += 14;
+
+				ctx.font = '10px "Courier New", monospace';
+				ctx.fillStyle = '#475569';
+				ctx.fillText('Volte Sempre!', larguraBase / 2, cursorY);
+				cursorY += 36;
+
+				// Assinatura
+				ctx.beginPath();
+				ctx.strokeStyle = '#000000';
+				ctx.lineWidth = 1;
+				const larguraAssinatura = 220;
+				const xAssinaturaInicio = (larguraBase - larguraAssinatura) / 2;
+				ctx.moveTo(xAssinaturaInicio, cursorY);
+				ctx.lineTo(xAssinaturaInicio + larguraAssinatura, cursorY);
+				ctx.stroke();
+				cursorY += 12;
+
+				ctx.font = '9px "Courier New", monospace';
+				ctx.fillStyle = '#334155';
+				ctx.fillText('Assinatura do Responsável', larguraBase / 2, cursorY);
+				cursorY += 16;
+
+				ctx.font = '8px "Courier New", monospace';
+				ctx.fillStyle = '#94a3b8';
+				ctx.fillText(`Emitido em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`, larguraBase / 2, cursorY);
+
+				canvas.toBlob((blob) => {
+					if (blob) {
+						resolve(blob);
+					} else {
+						reject(new Error('Falha ao gerar blob da imagem do cupom.'));
+					}
+				}, 'image/png');
+			} catch (err) {
+				reject(err);
+			}
+		});
+	},
+
+	/**
+	 * Baixa a imagem PNG do cupom pronta para enviar via WhatsApp, Telegram ou E-mail
+	 */
+	baixarImagemRecibo: async function (pedido) {
+		if (!pedido) return;
+		try {
+			const blob = await this.gerarImagemCupomAsync(pedido);
+			const numOS = (pedido.id || '').replace(/^os_/, '').slice(-6) || 'recibo';
+			const nomeArquivo = `Recibo_OS_${numOS}_${(pedido.placa || 'comprovante').replace(/[^A-Za-z0-9]/g, '')}.png`;
+
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = nomeArquivo;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(link.href);
+		} catch (e) {
+			console.error('Erro ao baixar imagem do recibo:', e);
+			// Fallback: baixa como HTML formatado
+			this.baixarHTMLRecibo(pedido);
+		}
+	},
+
+	/**
+	 * Fallback de download direto em formato HTML auto-contido
+	 */
+	baixarHTMLRecibo: function (pedido) {
+		if (!pedido) return;
+		const html = `
+			<!DOCTYPE html>
+			<html lang="pt-BR">
+			<head>
+				<meta charset="UTF-8" />
+				<title>Recibo - O.S. #${(pedido.id || '').replace(/^os_/, '').slice(-6)}</title>
+				<style>
+					body { font-family: 'Courier New', Courier, monospace; background: #f8fafc; padding: 20px; display: flex; justify-content: center; }
+					.cupom-fiscal-container { background: #fff; width: 320px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+					.cupom-header { text-align: center; }
+					.cupom-logo-icone { font-size: 24px; }
+					.cupom-empresa-nome { font-size: 14px; font-weight: bold; }
+					.cupom-divider-dashed { border-top: 1px dashed #000; margin: 8px 0; }
+					.cupom-divider-solid { border-top: 1px solid #000; margin: 8px 0; }
+					.cupom-divider-dotted { border-top: 1px dotted #000; margin: 4px 0; }
+					.cupom-row { display: flex; justify-content: space-between; margin-bottom: 2px; font-size: 11px; }
+					.cupom-item-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+					.cupom-itens-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 11px; }
+					.cupom-total-destaque { font-size: 13px; font-weight: bold; }
+					.cupom-footer { text-align: center; margin-top: 12px; font-size: 10px; }
+					.cupom-linha-assinatura { border-top: 1px solid #000; margin: 20px auto 4px auto; width: 80%; }
+				</style>
+			</head>
+			<body>
+				${this.gerarCupomHTML(pedido)}
+			</body>
+			</html>
+		`;
+		const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+		const numOS = (pedido.id || '').replace(/^os_/, '').slice(-6) || 'recibo';
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = `Recibo_OS_${numOS}.html`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(link.href);
+	},
+
+	/**
+	 * Prepara mensagem formatada com os dados do cupom e abre o WhatsApp com 1 clique
+	 */
+	enviarWhatsApp: function (pedido) {
+		if (!pedido) return;
+
+		const config = (typeof BrandService !== 'undefined' && BrandService.getConfig)
+			? BrandService.getConfig()
+			: (JSON.parse(localStorage.getItem('config_negocio')) || {});
+
+		const nomeEmpresa = config.nomeEstabelecimento || 'SEU NEGÓCIO';
+		const numOS = (pedido.id || '').replace(/^os_/, '').slice(-6) || '000001';
+		const valorFinal = parseFloat(pedido.valor || 0).toFixed(2);
+		const servicos = pedido.servicos || 'Serviços Prestados';
+		const formaPgto = (pedido.formaPagamento || 'Pix').toUpperCase();
+		const dataEmissao = this.formatarData(pedido.dataEncerramento || pedido.data || '');
+		const horaEmissao = pedido.horaEncerramento || pedido.horaEntrada || '';
+
+		// Busca telefone do cliente se houver na lista de clientes
+		const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+		const clienteCadastrado = clientes.find(
+			c => c.nome && pedido.cliente && c.nome.trim().toLowerCase() === pedido.cliente.trim().toLowerCase()
+		);
+		let telLimpo = '';
+		if (clienteCadastrado && clienteCadastrado.tel1) {
+			telLimpo = clienteCadastrado.tel1.replace(/\D/g, '');
+			if (telLimpo.length >= 10 && !telLimpo.startsWith('55')) {
+				telLimpo = '55' + telLimpo;
+			}
+		}
+
+		let msg = `*🧾 COMPROVANTE DE PAGAMENTO / RECIBO*\n`;
+		msg += `*${nomeEmpresa.toUpperCase()}*\n`;
+		if (config.telefone) msg += `📞 Contato: ${config.telefone}\n`;
+		msg += `------------------------------------\n`;
+		msg += `*O.S.:* #${numOS}\n`;
+		msg += `*Data/Hora:* ${dataEmissao} às ${horaEmissao}\n`;
+		msg += `*Cliente:* ${pedido.cliente || 'Consumidor'}\n`;
+		msg += `*Item/Veículo:* ${pedido.placa || ''} ${pedido.modelo ? `(${pedido.modelo})` : ''}\n`;
+		msg += `*Serviços:* ${servicos}\n`;
+		msg += `------------------------------------\n`;
+		msg += `*VALOR TOTAL:* R$ ${valorFinal}\n`;
+		msg += `*Forma de Pagamento:* ${formaPgto}\n`;
+		msg += `*Status:* QUITADO / PAGO ✅\n`;
+		msg += `------------------------------------\n`;
+		msg += `_Obrigado pela preferência! Volte sempre._`;
+
+		const textoEncoded = encodeURIComponent(msg);
+		let urlWhatsApp = `https://api.whatsapp.com/send?text=${textoEncoded}`;
+		if (telLimpo) {
+			urlWhatsApp = `https://api.whatsapp.com/send?phone=${telLimpo}&text=${textoEncoded}`;
+		}
+
+		window.open(urlWhatsApp, '_blank');
+	},
+
+	/**
 	 * Utilitário de escape de strings para HTML seguro
 	 */
 	escaparHTML: function (str) {
