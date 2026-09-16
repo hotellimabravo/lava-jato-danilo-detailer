@@ -12,7 +12,7 @@ const PORT = 3000;
 app.use(express.static(__dirname));
 
 // Route handlers for clean URLs
-const pages = ['clientes', 'historico', 'pedidos', 'servicos', 'index'];
+const pages = ['clientes', 'historico', 'pedidos', 'servicos', 'caixa', 'configuracoes', 'index'];
 pages.forEach((page) => {
 	app.get(`/${page}`, (req, res) => {
 		res.sendFile(path.join(__dirname, `${page}.html`));

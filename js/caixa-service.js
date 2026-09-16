@@ -1,0 +1,221 @@
+// ==========================================================================
+// Serviço Central de Caixa e Utilitários Automotivos
+// ==========================================================================
+
+const CORES_VEICULOS = [
+	{ id: 'branco', nome: 'Branco', hex: '#f8fafc', borda: '#94a3b8', texto: '#0f172a' },
+	{ id: 'preto', nome: 'Preto', hex: '#18181b', borda: '#09090b', texto: '#ffffff' },
+	{ id: 'prata', nome: 'Prata', hex: '#cbd5e1', borda: '#94a3b8', texto: '#0f172a' },
+	{ id: 'cinza', nome: 'Cinza / Chumbo', hex: '#64748b', borda: '#475569', texto: '#ffffff' },
+	{ id: 'vermelho', nome: 'Vermelho', hex: '#dc2626', borda: '#b91c1c', texto: '#ffffff' },
+	{ id: 'azul', nome: 'Azul', hex: '#2563eb', borda: '#1d4ed8', texto: '#ffffff' },
+	{ id: 'verde', nome: 'Verde', hex: '#16a34a', borda: '#15803d', texto: '#ffffff' },
+	{ id: 'amarelo', nome: 'Amarelo', hex: '#eab308', borda: '#ca8a04', texto: '#0f172a' },
+	{ id: 'laranja', nome: 'Laranja', hex: '#ea580c', borda: '#c2410c', texto: '#ffffff' },
+	{ id: 'marrom', nome: 'Marrom / Bege', hex: '#78350f', borda: '#451a03', texto: '#ffffff' },
+	{ id: 'vinho', nome: 'Vinho', hex: '#831843', borda: '#701a75', texto: '#ffffff' },
+	{ id: 'outro', nome: 'Outro', hex: '#8b5cf6', borda: '#7c3aed', texto: '#ffffff' }
+];
+
+function obterCorVeiculo(corIdOuNome) {
+	if (!corIdOuNome) return CORES_VEICULOS[0];
+	const normalizado = corIdOuNome.toString().toLowerCase().trim();
+	const encontrada = CORES_VEICULOS.find(
+		(c) => c.id === normalizado || c.nome.toLowerCase() === normalizado
+	);
+	return encontrada || { id: 'personalizada', nome: corIdOuNome, hex: '#3b82f6', borda: '#2563eb', texto: '#ffffff' };
+}
+
+function renderizarIconeCarro(corObj, tamanho = 28) {
+	const c = typeof corObj === 'string' ? obterCorVeiculo(corObj) : (corObj || CORES_VEICULOS[0]);
+	return `
+		<span class="veiculo-icone-wrapper" title="Cor: ${c.nome}" style="display:inline-flex; align-items:center; justify-content:center; width:${tamanho}px; height:${tamanho}px; min-width:${tamanho}px; border-radius:6px; background-color:${c.hex}; border:2px solid ${c.borda}; box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+			<svg width="${Math.round(tamanho * 0.72)}" height="${Math.round(tamanho * 0.72)}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path d="M5 11L6.5 6.5C6.7 5.9 7.3 5.5 8 5.5H16C16.7 5.5 17.3 5.9 17.5 6.5L19 11M5 11H19M5 11C3.9 11 3 11.9 3 13V17C3 17.6 3.4 18 4 18H5M19 11C20.1 11 21 11.9 21 13V17C21 17.6 20.6 18 20 18H19M7 18H17" stroke="${c.texto}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+				<circle cx="7.5" cy="14.5" r="1.5" fill="${c.texto}"/>
+				<circle cx="16.5" cy="14.5" r="1.5" fill="${c.texto}"/>
+			</svg>
+		</span>
+	`;
+}
+
+function obterDataHojeISO() {
+	const now = new Date();
+	const ano = now.getFullYear();
+	const mes = String(now.getMonth() + 1).padStart(2, '0');
+	const dia = String(now.getDate()).padStart(2, '0');
+	return `${ano}-${mes}-${dia}`;
+}
+
+function obterHoraAtual() {
+	const now = new Date();
+	return now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// --------------------------------------------------------------------------
+// Gerenciador de Livro Caixa com Fechamento de Contingência Automático
+// --------------------------------------------------------------------------
+class CaixaService {
+	static verificarRotinaViradaDia() {
+		const hoje = obterDataHojeISO();
+		let caixaAtual = JSON.parse(localStorage.getItem('caixa_atual'));
+		let fechamentos = JSON.parse(localStorage.getItem('caixas_fechados')) || [];
+
+		// Se nunca houve caixa ou está vazio
+		if (!caixaAtual) {
+			caixaAtual = {
+				data: hoje,
+				status: 'aberto',
+				horaAbertura: obterHoraAtual(),
+				fundoTroco: 0
+			};
+			localStorage.setItem('caixa_atual', JSON.stringify(caixaAtual));
+			return;
+		}
+
+		// Se a data do caixa em memória for anterior ao dia de hoje
+		if (caixaAtual.data < hoje) {
+			// Se o caixa do dia anterior ainda estava em aberto, fecha automaticamente
+			if (caixaAtual.status === 'aberto') {
+				const resumoDiaAnterior = CaixaService.calcularResumoDia(caixaAtual.data);
+				const fechamentoAnterior = {
+					data: caixaAtual.data,
+					horaFechamento: '23:59',
+					status: 'fechado',
+					automatico: true,
+					motivoFechamento: 'Fechamento automático por virada de dia',
+					fundoTroco: parseFloat(caixaAtual.fundoTroco || 0),
+					totalValor: resumoDiaAnterior.totalValor,
+					totalServicos: resumoDiaAnterior.totalServicos,
+					breakdown: resumoDiaAnterior.breakdown,
+					dataRegistro: new Date().toISOString()
+				};
+
+				// Evita duplicatas para a mesma data
+				fechamentos = fechamentos.filter(f => f.data !== caixaAtual.data);
+				fechamentos.push(fechamentoAnterior);
+				localStorage.setItem('caixas_fechados', JSON.stringify(fechamentos));
+			}
+
+			// Abre o caixa do novo dia normalmente
+			caixaAtual = {
+				data: hoje,
+				status: 'aberto',
+				horaAbertura: obterHoraAtual(),
+				fundoTroco: 0
+			};
+			localStorage.setItem('caixa_atual', JSON.stringify(caixaAtual));
+		}
+	}
+
+	static calcularResumoDia(dataAlvo) {
+		const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+		
+		let totalValor = 0;
+		let totalServicos = 0;
+		const breakdown = {
+			'Pix': 0,
+			'Dinheiro': 0,
+			'Cartão de Crédito': 0,
+			'Cartão de Débito': 0,
+			'A Prazo / Fiado': 0,
+			'Outro': 0
+		};
+
+		pedidos.forEach(p => {
+			// Considera pedidos com status encerrado ou legado naquela data
+			const dataReferencia = p.dataEncerramento || p.data;
+			const estaEncerrado = !p.status || p.status === 'encerrado';
+
+			if (dataReferencia === dataAlvo && estaEncerrado) {
+				const v = parseFloat(p.valor || 0);
+				totalValor += v;
+				totalServicos++;
+
+				const forma = p.formaPagamento || 'Outro';
+				if (breakdown[forma] !== undefined) {
+					breakdown[forma] += v;
+				} else {
+					breakdown['Outro'] += v;
+				}
+			}
+		});
+
+		return { totalValor, totalServicos, breakdown };
+	}
+
+	static getStatusHoje() {
+		CaixaService.verificarRotinaViradaDia();
+		const hoje = obterDataHojeISO();
+		let caixaAtual = JSON.parse(localStorage.getItem('caixa_atual')) || {
+			data: hoje,
+			status: 'aberto',
+			horaAbertura: obterHoraAtual(),
+			fundoTroco: 0
+		};
+
+		const resumo = CaixaService.calcularResumoDia(hoje);
+		return {
+			...caixaAtual,
+			...resumo
+		};
+	}
+
+	static fecharCaixaHoje(fundoTroco = 0, observacoes = '') {
+		const hoje = obterDataHojeISO();
+		const resumo = CaixaService.calcularResumoDia(hoje);
+		let fechamentos = JSON.parse(localStorage.getItem('caixas_fechados')) || [];
+
+		const fechamentoHoje = {
+			data: hoje,
+			horaFechamento: obterHoraAtual(),
+			status: 'fechado',
+			automatico: false,
+			observacoes: observacoes,
+			fundoTroco: parseFloat(fundoTroco || 0),
+			totalValor: resumo.totalValor,
+			totalServicos: resumo.totalServicos,
+			breakdown: resumo.breakdown,
+			dataRegistro: new Date().toISOString()
+		};
+
+		fechamentos = fechamentos.filter(f => f.data !== hoje);
+		fechamentos.push(fechamentoHoje);
+		localStorage.setItem('caixas_fechados', JSON.stringify(fechamentos));
+
+		const caixaAtual = {
+			data: hoje,
+			status: 'fechado',
+			horaAbertura: (JSON.parse(localStorage.getItem('caixa_atual')) || {}).horaAbertura || '08:00',
+			horaFechamento: fechamentoHoje.horaFechamento,
+			fundoTroco: parseFloat(fundoTroco || 0)
+		};
+		localStorage.setItem('caixa_atual', JSON.stringify(caixaAtual));
+
+		return fechamentoHoje;
+	}
+
+	static reabrirCaixaHoje() {
+		const hoje = obterDataHojeISO();
+		let fechamentos = JSON.parse(localStorage.getItem('caixas_fechados')) || [];
+		fechamentos = fechamentos.filter(f => f.data !== hoje);
+		localStorage.setItem('caixas_fechados', JSON.stringify(fechamentos));
+
+		const caixaAtual = {
+			data: hoje,
+			status: 'aberto',
+			horaAbertura: obterHoraAtual(),
+			fundoTroco: 0
+		};
+		localStorage.setItem('caixa_atual', JSON.stringify(caixaAtual));
+	}
+
+	static getHistoricoFechamentos() {
+		CaixaService.verificarRotinaViradaDia();
+		const fechamentos = JSON.parse(localStorage.getItem('caixas_fechados')) || [];
+		return [...fechamentos].sort((a, b) => (b.data > a.data ? 1 : -1));
+	}
+}
+
+// Executa automaticamente a checagem no carregamento de qualquer página
+CaixaService.verificarRotinaViradaDia();

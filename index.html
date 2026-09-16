@@ -3,11 +3,11 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-		<title>Sistema Lava Jato - Danilo Detailer</title>
+		<title>Lava Jato - Danilo Detailer | Sistema de Gestão</title>
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<!-- Top Navigation Header -->
+		<!-- Header -->
 		<header class="site-header">
 			<div class="header-inner">
 				<a href="index.html" class="brand-wrapper">
@@ -20,9 +20,15 @@
 				<nav class="navbar">
 					<a href="index.html" class="active">🏠 Início</a>
 					<a href="pedidos.html">📋 Pedidos / O.S.</a>
+					<a href="caixa.html">💰 Livro Caixa</a>
 					<a href="clientes.html">👤 Clientes</a>
 					<a href="servicos.html">🛠️ Serviços</a>
 				</nav>
+				<div class="header-actions">
+					<a href="configuracoes.html" class="btn-settings-gear" title="Configurações e Banco de Dados" id="btnConfiguracoes">
+						⚙️
+					</a>
+				</div>
 			</div>
 		</header>
 
@@ -30,78 +36,109 @@
 		<main class="container">
 			<div class="page-header">
 				<h1 class="page-title">Painel de Controle</h1>
-				<p class="page-subtitle">Visão geral das atividades e faturamento de hoje</p>
+				<p class="page-subtitle">Acompanhe veículos no pátio, faturamento diário e movimentação do lava jato</p>
 			</div>
 
-			<!-- Resumo do Dia / Dashboard Stats -->
+			<!-- Dashboard KPI Cards -->
 			<div class="dashboard-grid">
 				<div class="stat-card">
-					<div class="stat-icon blue">📊</div>
+					<div class="stat-icon blue">🚗</div>
 					<div class="stat-info">
-						<span class="stat-label">Serviços Hoje</span>
-						<span class="stat-value" id="totalServicos">0</span>
+						<span class="stat-label">Veículos no Pátio (Em Aberto)</span>
+						<span class="stat-value" id="statCarrosPatio">0</span>
 					</div>
 				</div>
 				<div class="stat-card">
 					<div class="stat-icon green">💰</div>
 					<div class="stat-info">
-						<span class="stat-label">Valor Produzido</span>
-						<span class="stat-value" id="totalValor">R$ 0,00</span>
+						<span class="stat-label">Faturamento Hoje</span>
+						<span class="stat-value" id="statFaturamentoHoje">R$ 0,00</span>
 					</div>
 				</div>
 				<div class="stat-card">
-					<div class="stat-icon amber">👥</div>
+					<div class="stat-icon amber">👤</div>
 					<div class="stat-info">
 						<span class="stat-label">Clientes Cadastrados</span>
-						<span class="stat-value" id="totalClientes">0</span>
+						<span class="stat-value" id="statTotalClientes">0</span>
 					</div>
 				</div>
 			</div>
 
-			<!-- Ações Rápidas -->
-			<div class="section-title">⚡ Acesso Rápido</div>
-			<div class="painel">
-				<a href="pedidos.html" class="quick-action-card">
-					<div class="quick-action-icon">📋</div>
-					<div class="quick-action-text">
-						<span class="quick-action-title">Nova Ordem / Pedido</span>
-						<span class="quick-action-desc">Registrar atendimento de hoje</span>
-					</div>
+			<!-- Quick Actions Bar -->
+			<div class="quick-actions" id="painelAcoesRapidas">
+				<a href="pedidos.html" class="action-btn" id="acaoNovaOS">
+					<span class="action-btn-icon blue">🚗</span>
+					<span class="action-btn-text">
+						<strong>Nova Entrada (O.S.)</strong>
+						<small>Cadastrar placa e cor do veículo</small>
+					</span>
 				</a>
-				<a href="clientes.html" class="quick-action-card">
-					<div class="quick-action-icon">👤</div>
-					<div class="quick-action-text">
-						<span class="quick-action-title">Cadastro de Clientes</span>
-						<span class="quick-action-desc">Consultar e adicionar contatos</span>
-					</div>
+				<a href="caixa.html" class="action-btn" id="acaoLivroCaixa">
+					<span class="action-btn-icon green">💰</span>
+					<span class="action-btn-text">
+						<strong>Livro Caixa</strong>
+						<small>Conferir entradas e fechar o dia</small>
+					</span>
 				</a>
-				<a href="servicos.html" class="quick-action-card">
-					<div class="quick-action-icon">🛠️</div>
-					<div class="quick-action-text">
-						<span class="quick-action-title">Tabela de Serviços</span>
-						<span class="quick-action-desc">Gerenciar preços e etapas</span>
-					</div>
+				<a href="clientes.html" class="action-btn" id="acaoCadastrarCliente">
+					<span class="action-btn-icon amber">👤</span>
+					<span class="action-btn-text">
+						<strong>Cadastrar Cliente</strong>
+						<small>Gerenciar contatos e histórico</small>
+					</span>
+				</a>
+				<a href="servicos.html" class="action-btn" id="acaoTabelaPrecos">
+					<span class="action-btn-icon slate">🛠️</span>
+					<span class="action-btn-text">
+						<strong>Tabela de Preços</strong>
+						<small>Configurar serviços e valores</small>
+					</span>
 				</a>
 			</div>
 
-			<!-- Histórico Rápido de Hoje -->
+			<!-- Veículos no Pátio Agora -->
 			<div class="content-card">
 				<div class="content-card-title">
-					<span>Últimos Pedidos Registrados</span>
-					<a href="pedidos.html" class="btn btn-secondary btn-sm">Ver Todos</a>
+					<span>🚗 Veículos em Atendimento no Pátio Agora</span>
+					<a href="pedidos.html" class="btn btn-secondary btn-sm">+ Nova Entrada</a>
 				</div>
 				<div class="table-responsive">
-					<table class="tabela" id="tabelaHoje">
+					<table class="tabela">
 						<thead>
 							<tr>
+								<th>Veículo & Placa</th>
 								<th>Cliente</th>
+								<th>Horário Chegada</th>
 								<th>Serviços</th>
-								<th>Valor</th>
-								<th>Pagamento</th>
-								<th>Data</th>
+								<th>Valor Previsto</th>
+								<th style="text-align: center;">Ação</th>
 							</tr>
 						</thead>
-						<tbody id="listaHojeCorpo">
+						<tbody id="corpoPatioDashboard">
+							<!-- Preenchido via JS -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<!-- Histórico Recente de Entregas -->
+			<div class="content-card">
+				<div class="content-card-title">
+					<span>Últimos Pagamentos e Entregas</span>
+					<a href="caixa.html" class="btn btn-secondary btn-sm">Ver Livro Caixa</a>
+				</div>
+				<div class="table-responsive">
+					<table class="tabela">
+						<thead>
+							<tr>
+								<th>Veículo & Placa</th>
+								<th>Cliente</th>
+								<th>Conclusão</th>
+								<th>Valor</th>
+								<th>Pagamento</th>
+							</tr>
+						</thead>
+						<tbody id="corpoDashboardPedidos">
 							<!-- Preenchido via JS -->
 						</tbody>
 					</table>
@@ -109,6 +146,7 @@
 			</div>
 		</main>
 
+		<script src="js/caixa-service.js"></script>
 		<script src="js/index.js"></script>
 	</body>
 </html>

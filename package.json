@@ -9,6 +9,7 @@
     "build": "node -e 'console.log(\"Build complete\")'"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "xlsx": "^0.18.5"
   }
 }

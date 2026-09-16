@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-		<title>Pedidos / Ordens de Serviço - Lava Jato</title>
+		<title>Ordens de Serviço e Pátio - Lava Jato</title>
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
@@ -20,23 +20,29 @@
 				<nav class="navbar">
 					<a href="index.html">🏠 Início</a>
 					<a href="pedidos.html" class="active">📋 Pedidos / O.S.</a>
+					<a href="caixa.html">💰 Livro Caixa</a>
 					<a href="clientes.html">👤 Clientes</a>
 					<a href="servicos.html">🛠️ Serviços</a>
 				</nav>
+				<div class="header-actions">
+					<a href="configuracoes.html" class="btn-settings-gear" title="Configurações e Banco de Dados" id="btnConfiguracoes">
+						⚙️
+					</a>
+				</div>
 			</div>
 		</header>
 
 		<!-- Main -->
 		<main class="container">
 			<div class="page-header">
-				<h1 class="page-title">Pedidos e Ordens de Serviço</h1>
-				<p class="page-subtitle">Emita ordens de serviço, registre pagamentos e consulte atendimentos</p>
+				<h1 class="page-title">Ordens de Serviço & Pátio</h1>
+				<p class="page-subtitle">Dê entrada no veículo ao chegar e realize o pagamento e fechamento na entrega</p>
 			</div>
 
-			<!-- Formulário de Pedido -->
+			<!-- Formulário de Entrada da O.S. -->
 			<div class="content-card">
 				<div class="content-card-title">
-					<span>Nova Ordem de Serviço</span>
+					<span>🚗 Entrada de Veículo (Abrir O.S.)</span>
 				</div>
 
 				<form id="pedidoForm" class="form">
@@ -48,32 +54,53 @@
 							id="pedidoCliente"
 							required
 							autocomplete="off"
-							placeholder="Digite para buscar pelo nome..." />
+							placeholder="Nome do cliente (busque ou digite)..." />
 						<div id="sugestoesClientes" class="sugestoes"></div>
 					</div>
 
-					<!-- Data do Pedido -->
+					<!-- Placa do Veículo -->
 					<div class="form-group">
-						<label for="pedidoData">Data do Atendimento</label>
-						<input type="date" id="pedidoData" />
+						<label for="pedidoPlaca">Placa do Veículo *</label>
+						<input
+							type="text"
+							id="pedidoPlaca"
+							required
+							maxlength="8"
+							style="text-transform: uppercase; font-family: 'Courier New', monospace; font-weight: 700;"
+							placeholder="Ex: ABC1D23 ou ABC-1234" />
 					</div>
 
-					<!-- Serviços Selecionáveis -->
-					<div class="form-group full-width">
-						<label for="pedidoServico">
-							Serviços Inclusos * 
-							<span style="font-weight: normal; color: var(--text-muted); font-size: 0.8rem;">
-								(Segure Ctrl / toque para selecionar múltiplos)
+					<!-- Cor do Veículo com Seletor e Preview -->
+					<div class="form-group">
+						<label for="pedidoCor" style="display: flex; align-items: center; justify-content: space-between;">
+							<span>Cor do Veículo *</span>
+							<span id="previewCorContainer" style="display: inline-flex; align-items: center; gap: 6px;">
+								<!-- Renderizado via JS -->
 							</span>
 						</label>
-						<select id="pedidoServico" multiple required>
-							<!-- Preenchido via JS -->
+						<select id="pedidoCor" required>
+							<!-- Preenchido dinamicamente via JS com as opções de cores -->
 						</select>
 					</div>
 
-					<!-- Valor Total -->
+					<!-- Modelo / Detalhe do Veículo -->
 					<div class="form-group">
-						<label for="pedidoValor">Valor Total (R$) *</label>
+						<label for="pedidoModelo">Modelo / Veículo (Opcional)</label>
+						<input
+							type="text"
+							id="pedidoModelo"
+							placeholder="Ex: Honda Civic, Gol G5, Hilux..." />
+					</div>
+
+					<!-- Data e Hora de Entrada -->
+					<div class="form-group">
+						<label for="pedidoData">Data de Chegada</label>
+						<input type="date" id="pedidoData" />
+					</div>
+
+					<!-- Valor Total Estimado -->
+					<div class="form-group">
+						<label for="pedidoValor">Valor Total Previsto (R$) *</label>
 						<input
 							type="number"
 							id="pedidoValor"
@@ -83,50 +110,124 @@
 							placeholder="0.00" />
 					</div>
 
-					<!-- Forma de Pagamento -->
-					<div class="form-group">
-						<label for="formaPagamento">Forma de Pagamento</label>
-						<select id="formaPagamento" required>
-							<option value="Pix">📱 Pix</option>
-							<option value="Cartão de Crédito">💳 Cartão de Crédito</option>
-							<option value="Cartão de Débito">💳 Cartão de Débito</option>
-							<option value="Dinheiro">💵 Dinheiro</option>
-							<option value="A Prazo / Fiado">⏳ A Prazo</option>
+					<!-- Serviços Selecionáveis -->
+					<div class="form-group full-width">
+						<label for="pedidoServico">
+							Serviços a Realizar * 
+							<span style="font-weight: normal; color: var(--text-muted); font-size: 0.82rem;">
+								(Selecione um ou vários serviços; o valor é somado automaticamente)
+							</span>
+						</label>
+						<select id="pedidoServico" multiple required>
+							<!-- Preenchido via JS -->
 						</select>
 					</div>
 
 					<div class="form-actions">
-						<button type="submit" class="btn">📋 Registrar Pedido / O.S.</button>
+						<button type="submit" class="btn">🚗 Dar Entrada do Carro (Abrir O.S.)</button>
 					</div>
 				</form>
 			</div>
 
-			<!-- Tabela de Pedidos Registrados -->
+			<!-- Visualização do Pátio e Histórico -->
 			<div class="content-card">
-				<div class="content-card-title">
-					<span>Histórico de Pedidos Registrados</span>
+				<!-- Abas de Navegação -->
+				<div class="tabs-container">
+					<button type="button" class="tab-button active" id="tabPatioBtn">
+						🚗 Carros no Pátio / Em Andamento
+						<span class="tab-count" id="countPatio">0</span>
+					</button>
+					<button type="button" class="tab-button" id="tabEncerradosBtn">
+						✅ Ordens Encerradas / Pagas
+						<span class="tab-count" id="countEncerrados">0</span>
+					</button>
 				</div>
 
-				<div class="table-responsive">
-					<table id="pedidosTable" class="tabela">
-						<thead>
-							<tr>
-								<th>Cliente</th>
-								<th>Serviços</th>
-								<th>Data</th>
-								<th>Valor (R$)</th>
-								<th>Pagamento</th>
-								<th style="text-align: center;">Ações</th>
-							</tr>
-						</thead>
-						<tbody>
-							<!-- Preenchido via JS -->
-						</tbody>
-					</table>
+				<!-- Tabela: Pátio (Em Andamento) -->
+				<div id="viewPatio">
+					<div class="table-responsive">
+						<table id="tabelaPatio" class="tabela">
+							<thead>
+								<tr>
+									<th>Veículo & Placa</th>
+									<th>Cliente</th>
+									<th>Entrada</th>
+									<th>Serviços</th>
+									<th>Valor Previsto</th>
+									<th style="text-align: center;">Ações</th>
+								</tr>
+							</thead>
+							<tbody id="corpoTabelaPatio">
+								<!-- Preenchido via JS -->
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- Tabela: Ordens Encerradas -->
+				<div id="viewEncerrados" style="display: none;">
+					<div class="table-responsive">
+						<table id="tabelaEncerrados" class="tabela">
+							<thead>
+								<tr>
+									<th>Veículo & Placa</th>
+									<th>Cliente</th>
+									<th>Conclusão / Saída</th>
+									<th>Serviços</th>
+									<th>Valor Pago</th>
+									<th>Pagamento</th>
+									<th style="text-align: center;">Ações</th>
+								</tr>
+							</thead>
+							<tbody id="corpoTabelaEncerrados">
+								<!-- Preenchido via JS -->
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 		</main>
 
+		<!-- Modal: Receber & Encerrar O.S. -->
+		<div id="modalEncerramento" class="modal-overlay">
+			<div class="modal-card">
+				<div class="modal-header">
+					<h3 id="modalTitulo">Receber Pagamento & Encerrar O.S.</h3>
+					<button type="button" class="modal-close-btn" id="modalFecharBtn">&times;</button>
+				</div>
+				<form id="formEncerramento">
+					<div class="modal-body">
+						<div style="margin-bottom: 16px; padding: 12px; background: var(--bg-surface); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+							<div id="modalDetalhesVeiculo" style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;"></div>
+							<div id="modalDetalhesCliente" style="font-size: 0.9rem; color: var(--text-muted);"></div>
+							<div id="modalDetalhesServicos" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;"></div>
+						</div>
+
+						<div class="form-group" style="margin-bottom: 14px;">
+							<label for="modalValorFinal">Valor Final Cobrado (R$) *</label>
+							<input type="number" id="modalValorFinal" step="0.01" min="0" required />
+						</div>
+
+						<div class="form-group">
+							<label for="modalFormaPagamento">Forma de Pagamento *</label>
+							<select id="modalFormaPagamento" required>
+								<option value="Pix">📱 Pix</option>
+								<option value="Dinheiro">💵 Dinheiro</option>
+								<option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+								<option value="Cartão de Débito">💳 Cartão de Débito</option>
+								<option value="A Prazo / Fiado">⏳ A Prazo / Fiado</option>
+							</select>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" id="modalCancelarBtn">Cancelar</button>
+						<button type="submit" class="btn">✅ Confirmar Pagamento & Liberar Carro</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script src="js/caixa-service.js"></script>
 		<script src="js/pedidos.js"></script>
 	</body>
 </html>

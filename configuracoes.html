@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+		<title>Configurações do Sistema | Danilo Detailer</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<!-- Header -->
+		<header class="site-header">
+			<div class="header-inner">
+				<a href="index.html" class="brand-wrapper">
+					<div class="brand-logo">🚗</div>
+					<div class="brand-title">
+						<span>Lava Jato</span>
+						<span class="brand-subtitle">Danilo Detailer</span>
+					</div>
+				</a>
+				<nav class="navbar">
+					<a href="index.html">🏠 Início</a>
+					<a href="pedidos.html">📋 Pedidos / O.S.</a>
+					<a href="caixa.html">💰 Livro Caixa</a>
+					<a href="clientes.html">👤 Clientes</a>
+					<a href="servicos.html">🛠️ Serviços</a>
+				</nav>
+				<div class="header-actions">
+					<a href="configuracoes.html" class="btn-settings-gear active" title="Configurações do Sistema" id="btnHeaderConfig">
+						⚙️
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- Main Container -->
+		<main class="container">
+			<div class="page-header">
+				<h1 class="page-title">Configurações do Sistema</h1>
+				<p class="page-subtitle">Gerencie o banco de dados local em Excel, importe/exporte dados e configure os parâmetros operacionais</p>
+			</div>
+
+			<div class="settings-shell" id="painelConfiguracoes">
+				<!-- Sidebar de Navegação Estilo Windows Settings -->
+				<aside class="settings-sidebar">
+					<span class="settings-sidebar-title">Painel de Ajustes</span>
+					
+					<button type="button" class="settings-nav-item active" id="tabNavDatabase" onclick="alternarAbaConfig('database')">
+						<span class="settings-nav-icon">🗄️</span>
+						<span>Banco de Dados</span>
+					</button>
+
+					<button type="button" class="settings-nav-item" id="tabNavUsuarios" onclick="alternarAbaConfig('usuarios')">
+						<span class="settings-nav-icon">👥</span>
+						<span>Usuários</span>
+						<span class="badge badge-warning" style="margin-left: auto; font-size: 0.65rem; padding: 2px 6px;">Em breve</span>
+					</button>
+				</aside>
+
+				<!-- Área de Conteúdo das Abas -->
+				<div class="settings-content-area">
+					
+					<!-- ==================================================== -->
+					<!-- ABA 1: BANCO DE DADOS (DATABASE EXCEL) -->
+					<!-- ==================================================== -->
+					<div id="abaConteudoDatabase">
+						
+						<!-- Status de Gravação em Tempo Real -->
+						<div class="db-status-banner" id="bannerStatusDb">
+							<span class="db-status-icon">🛡️</span>
+							<div class="db-status-text">
+								<strong>Gravação Local em Tempo Real: ATIVA</strong>
+								<p>A cada cliente cadastrado, serviço alterado ou O.S. aberta, os dados são salvos imediatamente na memória local persistente. Se faltar energia ou o navegador fechar, suas informações permanecem 100% seguras.</p>
+							</div>
+						</div>
+
+						<!-- Resumo da Base Atual -->
+						<div class="settings-section-card" style="margin-top: 18px;" id="cardResumoBase">
+							<div class="settings-section-header">
+								<h2 class="settings-section-title">
+									<span>📊 Diagnóstico da Base Ativa</span>
+								</h2>
+								<span class="badge badge-success" id="badgeOrigemBase">Base Local Operante</span>
+							</div>
+
+							<div class="dashboard-grid" style="margin-bottom: 0;">
+								<div class="stat-card">
+									<div class="stat-icon blue">👤</div>
+									<div class="stat-info">
+										<span class="stat-label">Clientes Cadastrados</span>
+										<span class="stat-value" id="dbTotalClientes">0</span>
+									</div>
+								</div>
+								<div class="stat-card">
+									<div class="stat-icon amber">🛠️</div>
+									<div class="stat-info">
+										<span class="stat-label">Serviços no Catálogo</span>
+										<span class="stat-value" id="dbTotalServicos">0</span>
+									</div>
+								</div>
+								<div class="stat-card">
+									<div class="stat-icon green">📋</div>
+									<div class="stat-info">
+										<span class="stat-label">Ordens de Serviço</span>
+										<span class="stat-value" id="dbTotalPedidos">0</span>
+									</div>
+								</div>
+								<div class="stat-card">
+									<div class="stat-icon slate">💰</div>
+									<div class="stat-info">
+										<span class="stat-label">Fechamentos Caixa</span>
+										<span class="stat-value" id="dbTotalCaixas">0</span>
+									</div>
+								</div>
+							</div>
+
+							<div id="infoUltimaOrigem" style="font-size: 0.85rem; color: var(--text-muted); background: var(--bg-surface); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+								Carregando detalhes do banco de dados...
+							</div>
+						</div>
+
+						<!-- Seção 1: Puxar / Importar Planilha Excel -->
+						<div class="settings-section-card" style="margin-top: 18px;" id="cardImportarExcel">
+							<div class="settings-section-header">
+								<h2 class="settings-section-title">
+									<span>📂 Puxar / Carregar Banco de Dados de Planilha</span>
+								</h2>
+								<span style="font-size: 0.8rem; color: var(--text-muted);">Formato suportado: .xlsx</span>
+							</div>
+
+							<p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
+								Selecione uma planilha de Excel (com as abas de <em>Clientes, Servicos, Pedidos_OS e Livro_Caixa</em>). O sistema passará a utilizar essa planilha como a base ativa oficial.
+							</p>
+
+							<!-- Dropzone para arrastar ou clicar -->
+							<div class="excel-dropzone" id="dropzoneExcel" onclick="document.getElementById('inputArquivoExcel').click()">
+								<span class="excel-dropzone-icon">📥</span>
+								<span class="excel-dropzone-title">Clique ou arraste sua planilha aqui</span>
+								<span class="excel-dropzone-desc">Selecione o arquivo .xlsx gerado pelo sistema ou criado a partir do modelo padrão</span>
+								<input type="file" id="inputArquivoExcel" accept=".xlsx, .xls" style="display: none;" onchange="tratarArquivoSelecionado(event)" />
+							</div>
+
+							<!-- Opções de Importação -->
+							<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+								<div>
+									<label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 4px;">Modo de Aplicação da Planilha:</label>
+									<div style="display: flex; gap: 16px;">
+										<label style="display: flex; align-items: center; gap: 6px; font-size: 0.88rem; cursor: pointer;">
+											<input type="radio" name="modoImportacao" value="substituir" checked /> Substituir base ativa (recomendado)
+										</label>
+										<label style="display: flex; align-items: center; gap: 6px; font-size: 0.88rem; cursor: pointer;">
+											<input type="radio" name="modoImportacao" value="mesclar" /> Mesclar com dados atuais
+										</label>
+									</div>
+								</div>
+
+								<button type="button" class="btn btn-primary" id="btnConfirmarImportacao" onclick="executarImportacao()" disabled>
+									🚀 Carregar Planilha Selecionada
+								</button>
+							</div>
+
+							<!-- Feedback de Importação -->
+							<div id="resultadoImportacao" style="display: none;"></div>
+						</div>
+
+						<!-- Seção 2: Salvar / Exportar Backup em Excel -->
+						<div class="settings-section-card" style="margin-top: 18px;" id="cardExportarExcel">
+							<div class="settings-section-header">
+								<h2 class="settings-section-title">
+									<span>💾 Salvar / Exportar Backup em Excel</span>
+								</h2>
+								<button type="button" class="btn btn-secondary" onclick="DatabaseExcelService.baixarModeloExemplo()">
+									📄 Baixar Modelo em Branco
+								</button>
+							</div>
+
+							<p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
+								Gere uma cópia física da sua base de dados atualizada a qualquer momento. O arquivo gerado contém todas as abas consolidadas prontas para backup em nuvem, pen drive ou edição no Excel.
+							</p>
+
+							<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+								<button type="button" class="btn btn-primary" onclick="executarExportacao()" id="btnExportarBase">
+									<span>📥 Baixar Planilha Completa Atual (.xlsx)</span>
+								</button>
+								<span id="txtUltimoBackup" style="font-size: 0.82rem; color: var(--text-muted);">
+									Nenhum backup baixado nesta sessão.
+								</span>
+							</div>
+						</div>
+
+					</div>
+
+					<!-- ==================================================== -->
+					<!-- ABA 2: USUÁRIOS DO SISTEMA (PLACEHOLDER SOLICITADO) -->
+					<!-- ==================================================== -->
+					<div id="abaConteudoUsuarios" style="display: none;">
+						<div class="settings-section-card">
+							<div class="settings-section-header">
+								<h2 class="settings-section-title">
+									<span>👥 Usuários e Permissões do Sistema</span>
+								</h2>
+								<span class="badge badge-warning">Em Planejamento</span>
+							</div>
+
+							<div style="text-align: center; padding: 40px 20px;">
+								<div style="font-size: 3rem; margin-bottom: 12px;">👤⚙️</div>
+								<h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">
+									Módulo de Controle de Usuários
+								</h3>
+								<p style="font-size: 0.9rem; color: var(--text-muted); max-width: 500px; margin: 0 auto 20px auto; line-height: 1.6;">
+									Esta seção reservada receberá o gerenciamento de operadores, caixas e administradores do lava jato com níveis de acesso individuais. A estrutura está reservada e pronta para ativação na próxima fase do projeto.
+								</p>
+								<div style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-surface); padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-muted);">
+									<span>ℹ️ No momento o acesso ao sistema é unificado para o pátio e recepção.</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</main>
+
+		<!-- Scripts -->
+		<script src="js/xlsx.full.min.js"></script>
+		<script src="js/database-excel.js"></script>
+		<script src="js/configuracoes.js"></script>
+	</body>
+</html>

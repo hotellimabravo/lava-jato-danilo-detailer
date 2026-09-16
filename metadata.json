@@ -1,6 +1,6 @@
 {
   "name": "Sistema Lava Jato",
-  "description": "Sistema de gerenciamento para lava jato com cadastro de clientes, serviços e pedidos.",
+  "description": "Sistema de gerenciamento para lava jato com ordens de serviço por placa e cor do veículo, histórico do cliente e livro caixa com fechamento automático.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

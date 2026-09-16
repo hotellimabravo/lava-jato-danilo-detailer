@@ -20,9 +20,15 @@
 				<nav class="navbar">
 					<a href="index.html">🏠 Início</a>
 					<a href="pedidos.html">📋 Pedidos / O.S.</a>
+					<a href="caixa.html">💰 Livro Caixa</a>
 					<a href="clientes.html" class="active">👤 Clientes</a>
 					<a href="servicos.html">🛠️ Serviços</a>
 				</nav>
+				<div class="header-actions">
+					<a href="configuracoes.html" class="btn-settings-gear" title="Configurações e Banco de Dados" id="btnConfiguracoes">
+						⚙️
+					</a>
+				</div>
 			</div>
 		</header>
 
@@ -34,7 +40,10 @@
 						<h1 class="page-title">Histórico de Atendimentos</h1>
 						<p class="page-subtitle" id="clienteNome">Carregando...</p>
 					</div>
-					<a href="clientes.html" class="btn btn-secondary btn-sm">⬅ Voltar aos Clientes</a>
+					<div style="display: flex; gap: 8px;">
+						<a href="pedidos.html" class="btn btn-sm" style="background-color: var(--primary);">+ Nova O.S.</a>
+						<a href="clientes.html" class="btn btn-secondary btn-sm">⬅ Voltar aos Clientes</a>
+					</div>
 				</div>
 			</div>
 
@@ -59,16 +68,18 @@
 			<!-- Tabela com Atendimentos -->
 			<div class="content-card">
 				<div class="content-card-title">
-					<span>Registros de Serviços Realizados</span>
+					<span>Registros de Veículos & Serviços Realizados</span>
 				</div>
 
 				<div class="table-responsive">
 					<table id="historicoTable" class="tabela">
 						<thead>
 							<tr>
-								<th>Data</th>
+								<th>Veículo & Placa</th>
+								<th>Data Entrada / Saída</th>
 								<th>Serviços Realizados</th>
 								<th>Valor</th>
+								<th>Status O.S.</th>
 								<th>Forma de Pagamento</th>
 							</tr>
 						</thead>
@@ -80,6 +91,7 @@
 			</div>
 		</main>
 
+		<script src="js/caixa-service.js"></script>
 		<script src="js/historico.js"></script>
 	</body>
 </html>

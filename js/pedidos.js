@@ -1,11 +1,15 @@
+// ==========================================================================
+// Gestão de Ordens de Serviço, Pátio e Encerramento
+// ==========================================================================
+
 // Inicialização com serviços padrão caso esteja vazio pela primeira vez
 if (!localStorage.getItem('servicos_initialized')) {
 	const defaultServicos = [
-		{ nome: 'Lavagem Simples', preco: 40.00, descricao: 'Lavagem externa com xampu neutro e secagem' },
-		{ nome: 'Lavagem Completa', preco: 70.00, descricao: 'Lavagem externa, aspiração interna e pneus' },
-		{ nome: 'Lavagem Completa + Cera', preco: 90.00, descricao: 'Lavagem completa com proteção de cera' },
-		{ nome: 'Higienização Interna', preco: 180.00, descricao: 'Limpeza e desinfecção de estofados e carpetes' },
-		{ nome: 'Polimento Comercial', preco: 250.00, descricao: 'Realce de brilho e remoção de marcas leves' }
+		{ nome: 'Lavagem Simples', preco: 40.0, descricao: 'Lavagem externa com xampu neutro e secagem' },
+		{ nome: 'Lavagem Completa', preco: 70.0, descricao: 'Lavagem externa, aspiração interna e pneus' },
+		{ nome: 'Lavagem Completa + Cera', preco: 90.0, descricao: 'Lavagem completa com proteção de cera' },
+		{ nome: 'Higienização Interna', preco: 180.0, descricao: 'Limpeza e desinfecção de estofados e carpetes' },
+		{ nome: 'Polimento Comercial', preco: 250.0, descricao: 'Realce de brilho e remoção de marcas leves' }
 	];
 	if (!localStorage.getItem('servicos')) {
 		localStorage.setItem('servicos', JSON.stringify(defaultServicos));
@@ -13,102 +17,135 @@ if (!localStorage.getItem('servicos_initialized')) {
 	localStorage.setItem('servicos_initialized', 'true');
 }
 
-// Carrega dados do localStorage
-let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-let servicos = JSON.parse(localStorage.getItem('servicos')) || [];
-let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-
-// Elementos da página
+// Elementos do DOM
 const pedidoForm = document.getElementById('pedidoForm');
-const pedidosTable = document.querySelector('#pedidosTable tbody');
-const pedidoServico = document.getElementById('pedidoServico');
-const pedidoData = document.getElementById('pedidoData');
 const pedidoCliente = document.getElementById('pedidoCliente');
+const pedidoPlaca = document.getElementById('pedidoPlaca');
+const pedidoCor = document.getElementById('pedidoCor');
+const previewCorContainer = document.getElementById('previewCorContainer');
+const pedidoModelo = document.getElementById('pedidoModelo');
+const pedidoData = document.getElementById('pedidoData');
+const pedidoServico = document.getElementById('pedidoServico');
 const pedidoValor = document.getElementById('pedidoValor');
 const sugestoesDiv = document.getElementById('sugestoesClientes');
 
-// Preenche data atual por padrão
-if (pedidoData && !pedidoData.value) {
-	pedidoData.value = new Date().toISOString().split('T')[0];
-}
+// Abas e visualizações
+const tabPatioBtn = document.getElementById('tabPatioBtn');
+const tabEncerradosBtn = document.getElementById('tabEncerradosBtn');
+const viewPatio = document.getElementById('viewPatio');
+const viewEncerrados = document.getElementById('viewEncerrados');
+const countPatio = document.getElementById('countPatio');
+const countEncerrados = document.getElementById('countEncerrados');
+const corpoTabelaPatio = document.getElementById('corpoTabelaPatio');
+const corpoTabelaEncerrados = document.getElementById('corpoTabelaEncerrados');
 
-// Atualizar tabela e opções de serviços
-function atualizarPedidos() {
-	// Recarrega do storage para sincronizar
-	pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-	servicos = JSON.parse(localStorage.getItem('servicos')) || [];
-	clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+// Modal de Encerramento
+const modalEncerramento = document.getElementById('modalEncerramento');
+const formEncerramento = document.getElementById('formEncerramento');
+const modalTitulo = document.getElementById('modalTitulo');
+const modalDetalhesVeiculo = document.getElementById('modalDetalhesVeiculo');
+const modalDetalhesCliente = document.getElementById('modalDetalhesCliente');
+const modalDetalhesServicos = document.getElementById('modalDetalhesServicos');
+const modalValorFinal = document.getElementById('modalValorFinal');
+const modalFormaPagamento = document.getElementById('modalFormaPagamento');
+const modalFecharBtn = document.getElementById('modalFecharBtn');
+const modalCancelarBtn = document.getElementById('modalCancelarBtn');
 
-	pedidosTable.innerHTML = '';
+let pedidoSelecionadoParaEncerrar = null;
 
-	if (pedidos.length === 0) {
-		pedidosTable.innerHTML = `
-			<tr>
-				<td colspan="6" class="empty-table-message">
-					Nenhum pedido registrado ainda. Preencha o formulário acima para criar uma Ordem de Serviço.
-				</td>
-			</tr>
-		`;
-	} else {
-		// Mostrar pedidos mais recentes no topo
-		const pedidosOrdenados = [...pedidos].reverse();
-		pedidosOrdenados.forEach((p, reverseIndex) => {
-			const originalIndex = pedidos.length - 1 - reverseIndex;
-			const tr = document.createElement('tr');
-			const valorFormatado = parseFloat(p.valor || 0).toFixed(2);
-			tr.innerHTML = `
-				<td><strong>${p.cliente || 'Sem Nome'}</strong></td>
-				<td>${p.servicos || '-'}</td>
-				<td>${p.data || '-'}</td>
-				<td><span class="badge-price">R$ ${valorFormatado}</span></td>
-				<td><span class="badge badge-payment">${p.formaPagamento || 'Outro'}</span></td>
-				<td style="text-align: center;">
-					<button type="button" class="btn btn-sm btn-secondary delete-pedido-btn" data-index="${originalIndex}" style="color: var(--danger);">
-						🗑️ Excluir
-					</button>
-				</td>
-			`;
-			pedidosTable.appendChild(tr);
-		});
+// Normalização de dados legados no carregamento
+function normalizarDadosPedidos() {
+	const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+	let houveModificacao = false;
 
-		// Adiciona evento de exclusão
-		document.querySelectorAll('.delete-pedido-btn').forEach((btn) => {
-			btn.addEventListener('click', (e) => {
-				const idx = e.currentTarget.getAttribute('data-index');
-				const p = pedidos[idx];
-				if (!p) return;
-
-				if (confirm(`Excluir a ordem de serviço do cliente "${p.cliente}" de R$ ${p.valor}?`)) {
-					pedidos.splice(idx, 1);
-					localStorage.setItem('pedidos', JSON.stringify(pedidos));
-					atualizarPedidos();
-				}
-			});
-		});
-	}
-
-	// Atualizar serviços no select
-	if (pedidoServico) {
-		pedidoServico.innerHTML = '';
-		if (servicos.length === 0) {
-			const opt = document.createElement('option');
-			opt.disabled = true;
-			opt.textContent = 'Nenhum serviço cadastrado (Cadastre em Serviços)';
-			pedidoServico.appendChild(opt);
-		} else {
-			servicos.forEach((s) => {
-				const option = document.createElement('option');
-				option.value = s.nome;
-				const precoText = s.preco ? ` (R$ ${parseFloat(s.preco).toFixed(2)})` : '';
-				option.textContent = `${s.nome}${precoText}`;
-				option.dataset.preco = s.preco || 0;
-				pedidoServico.appendChild(option);
-			});
+	pedidos.forEach((p, idx) => {
+		if (!p.id) {
+			p.id = 'os_' + (Date.now() - (pedidos.length - idx) * 1000);
+			houveModificacao = true;
 		}
+		if (!p.status) {
+			// Se já tinha forma de pagamento, é legado encerrado
+			p.status = p.formaPagamento ? 'encerrado' : 'aberto';
+			houveModificacao = true;
+		}
+		if (!p.placa) {
+			p.placa = 'SEM PLACA';
+			houveModificacao = true;
+		}
+		if (!p.cor) {
+			p.cor = 'prata';
+			houveModificacao = true;
+		}
+	});
+
+	if (houveModificacao) {
+		localStorage.setItem('pedidos', JSON.stringify(pedidos));
 	}
 }
 
-// Auto-cálculo de preço ao selecionar serviços
+// Popular seletor de cores do veículo
+function popularCoresVeiculo() {
+	if (!pedidoCor) return;
+	pedidoCor.innerHTML = '';
+	
+	CORES_VEICULOS.forEach((c) => {
+		const opt = document.createElement('option');
+		opt.value = c.id;
+		opt.textContent = `${c.nome}`;
+		pedidoCor.appendChild(opt);
+	});
+
+	pedidoCor.addEventListener('change', atualizarPreviewCor);
+	atualizarPreviewCor();
+}
+
+function atualizarPreviewCor() {
+	if (!pedidoCor || !previewCorContainer) return;
+	const corId = pedidoCor.value;
+	const corObj = obterCorVeiculo(corId);
+	previewCorContainer.innerHTML = `
+		${renderizarIconeCarro(corObj, 24)}
+		<small style="font-weight:600; color:var(--text-muted);">${corObj.nome}</small>
+	`;
+}
+
+// Data atual padrão
+if (pedidoData && !pedidoData.value) {
+	pedidoData.value = obterDataHojeISO();
+}
+
+// Formatação automática da placa para maiúsculas
+if (pedidoPlaca) {
+	pedidoPlaca.addEventListener('input', (e) => {
+		let v = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+		e.target.value = v;
+	});
+}
+
+// Atualiza a lista de opções de serviços no select
+function carregarSelectServicos() {
+	const servicos = JSON.parse(localStorage.getItem('servicos')) || [];
+	if (!pedidoServico) return;
+
+	pedidoServico.innerHTML = '';
+	if (servicos.length === 0) {
+		const opt = document.createElement('option');
+		opt.disabled = true;
+		opt.textContent = 'Nenhum serviço cadastrado';
+		pedidoServico.appendChild(opt);
+	} else {
+		servicos.forEach((s) => {
+			const opt = document.createElement('option');
+			opt.value = s.nome;
+			const precoFmt = s.preco ? ` (R$ ${parseFloat(s.preco).toFixed(2)})` : '';
+			opt.textContent = `${s.nome}${precoFmt}`;
+			opt.dataset.preco = s.preco || 0;
+			pedidoServico.appendChild(opt);
+		});
+	}
+}
+
+// Cálculo automático de preço ao selecionar serviços
 if (pedidoServico) {
 	pedidoServico.addEventListener('change', () => {
 		let total = 0;
@@ -122,15 +159,16 @@ if (pedidoServico) {
 	});
 }
 
-// Função para mostrar sugestões de clientes no autocomplete
+// Autocomplete de clientes
 if (pedidoCliente && sugestoesDiv) {
 	pedidoCliente.addEventListener('input', () => {
+		const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
 		const termo = pedidoCliente.value.trim().toLowerCase();
 		sugestoesDiv.innerHTML = '';
 		if (termo === '') return;
 
-		const resultados = clientes.filter((c) =>
-			c.nome && c.nome.toLowerCase().includes(termo),
+		const resultados = clientes.filter(
+			(c) => c.nome && c.nome.toLowerCase().includes(termo)
 		);
 
 		if (resultados.length === 0) {
@@ -155,7 +193,6 @@ if (pedidoCliente && sugestoesDiv) {
 		});
 	});
 
-	// Fecha sugestões ao clicar fora
 	document.addEventListener('click', (e) => {
 		if (!pedidoCliente.contains(e.target) && !sugestoesDiv.contains(e.target)) {
 			sugestoesDiv.innerHTML = '';
@@ -163,45 +200,314 @@ if (pedidoCliente && sugestoesDiv) {
 	});
 }
 
-// Cadastrar novo pedido
-pedidoForm.addEventListener('submit', (e) => {
-	e.preventDefault();
+// Alternar abas Pátio x Encerrados
+if (tabPatioBtn && tabEncerradosBtn) {
+	tabPatioBtn.addEventListener('click', () => {
+		tabPatioBtn.classList.add('active');
+		tabEncerradosBtn.classList.remove('active');
+		viewPatio.style.display = 'block';
+		viewEncerrados.style.display = 'none';
+	});
 
-	const clienteNome = pedidoCliente.value.trim();
-	const servicosSelecionados = Array.from(pedidoServico.selectedOptions)
-		.filter((o) => !o.disabled)
-		.map((o) => o.value);
+	tabEncerradosBtn.addEventListener('click', () => {
+		tabEncerradosBtn.classList.add('active');
+		tabPatioBtn.classList.remove('active');
+		viewPatio.style.display = 'none';
+		viewEncerrados.style.display = 'block';
+	});
+}
 
-	if (servicosSelecionados.length === 0) {
-		alert('Por favor, selecione ao menos um serviço.');
-		return;
+// Renderização das Tabelas (Pátio e Encerrados)
+function renderizarTabelas() {
+	const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+	
+	const pedidosPatio = pedidos.filter((p) => p.status === 'aberto');
+	const pedidosEncerrados = pedidos.filter((p) => p.status === 'encerrado');
+
+	if (countPatio) countPatio.textContent = pedidosPatio.length;
+	if (countEncerrados) countEncerrados.textContent = pedidosEncerrados.length;
+
+	// Renderizar Pátio (Em Aberto)
+	corpoTabelaPatio.innerHTML = '';
+	if (pedidosPatio.length === 0) {
+		corpoTabelaPatio.innerHTML = `
+			<tr>
+				<td colspan="6" class="empty-table-message">
+					🅿️ Nenhum veículo em atendimento no pátio no momento. Preencha o formulário acima para dar entrada.
+				</td>
+			</tr>
+		`;
+	} else {
+		// Mostrar mais recentes primeiro
+		[...pedidosPatio].reverse().forEach((p) => {
+			const corObj = obterCorVeiculo(p.cor);
+			const tr = document.createElement('tr');
+			const valorFormatado = parseFloat(p.valor || 0).toFixed(2);
+			const modeloTexto = p.modelo ? ` • ${p.modelo}` : '';
+
+			tr.innerHTML = `
+				<td>
+					<div class="veiculo-info-cell">
+						${renderizarIconeCarro(corObj, 32)}
+						<div class="veiculo-meta">
+							<span class="badge-placa">${p.placa || 'SEM PLACA'}</span>
+							<span class="veiculo-cor-nome">${corObj.nome}${modeloTexto}</span>
+						</div>
+					</div>
+				</td>
+				<td>
+					<strong>${p.cliente || 'Não identificado'}</strong>
+				</td>
+				<td>
+					<div>${p.data || '-'}</div>
+					<small style="color:var(--text-muted);">${p.horaEntrada ? 'Chegada: ' + p.horaEntrada : ''}</small>
+				</td>
+				<td>${p.servicos || '-'}</td>
+				<td>
+					<span class="badge-price">R$ ${valorFormatado}</span>
+					<div><span class="badge badge-status badge-status-aberto">Em Andamento</span></div>
+				</td>
+				<td style="text-align: center;">
+					<div class="btn-action-group">
+						<button type="button" class="btn btn-sm btn-receber-os" data-id="${p.id}" style="background-color: var(--success); color: #fff;">
+							💰 Receber & Encerrar
+						</button>
+						<button type="button" class="btn btn-sm btn-secondary btn-cancelar-os" data-id="${p.id}" style="color: var(--danger);" title="Remover O.S.">
+							🗑️
+						</button>
+					</div>
+				</td>
+			`;
+			corpoTabelaPatio.appendChild(tr);
+		});
 	}
 
-	let data = pedidoData.value;
-	const valor = pedidoValor.value;
-	const formaPagamento = document.getElementById('formaPagamento').value;
+	// Renderizar Encerrados
+	corpoTabelaEncerrados.innerHTML = '';
+	if (pedidosEncerrados.length === 0) {
+		corpoTabelaEncerrados.innerHTML = `
+			<tr>
+				<td colspan="7" class="empty-table-message">
+					Nenhuma ordem de serviço encerrada ainda.
+				</td>
+			</tr>
+		`;
+	} else {
+		[...pedidosEncerrados].reverse().forEach((p) => {
+			const corObj = obterCorVeiculo(p.cor);
+			const tr = document.createElement('tr');
+			const valorFormatado = parseFloat(p.valor || 0).toFixed(2);
+			const modeloTexto = p.modelo ? ` • ${p.modelo}` : '';
+			const dataSaida = p.dataEncerramento || p.data || '-';
+			const horaSaida = p.horaEncerramento ? ` às ${p.horaEncerramento}` : '';
 
-	if (!data) {
-		data = new Date().toISOString().split('T')[0];
+			tr.innerHTML = `
+				<td>
+					<div class="veiculo-info-cell">
+						${renderizarIconeCarro(corObj, 30)}
+						<div class="veiculo-meta">
+							<span class="badge-placa">${p.placa || 'SEM PLACA'}</span>
+							<span class="veiculo-cor-nome">${corObj.nome}${modeloTexto}</span>
+						</div>
+					</div>
+				</td>
+				<td><strong>${p.cliente || 'Não identificado'}</strong></td>
+				<td>
+					<div>${dataSaida}</div>
+					<small style="color:var(--text-muted);">${horaSaida}</small>
+				</td>
+				<td>${p.servicos || '-'}</td>
+				<td><span class="badge-price">R$ ${valorFormatado}</span></td>
+				<td>
+					<span class="badge badge-payment">${p.formaPagamento || 'Outro'}</span>
+				</td>
+				<td style="text-align: center;">
+					<button type="button" class="btn btn-sm btn-secondary btn-cancelar-os" data-id="${p.id}" style="color: var(--danger);" title="Excluir Registro">
+						🗑️
+					</button>
+				</td>
+			`;
+			corpoTabelaEncerrados.appendChild(tr);
+		});
 	}
 
-	const pedido = {
-		cliente: clienteNome,
-		servicos: servicosSelecionados.join(', '),
-		data,
-		valor,
-		formaPagamento,
-	};
+	// Vincular eventos de Receber & Encerrar
+	document.querySelectorAll('.btn-receber-os').forEach((btn) => {
+		btn.addEventListener('click', (e) => {
+			const osId = e.currentTarget.getAttribute('data-id');
+			abrirModalEncerramento(osId);
+		});
+	});
 
-	pedidos.push(pedido);
-	localStorage.setItem('pedidos', JSON.stringify(pedidos));
+	// Vincular eventos de Cancelar/Excluir
+	document.querySelectorAll('.btn-cancelar-os').forEach((btn) => {
+		btn.addEventListener('click', (e) => {
+			const osId = e.currentTarget.getAttribute('data-id');
+			const todosPedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+			const p = todosPedidos.find((item) => item.id === osId);
+			if (!p) return;
 
-	atualizarPedidos();
-	pedidoForm.reset();
-	if (pedidoData) {
-		pedidoData.value = new Date().toISOString().split('T')[0];
+			if (confirm(`Deseja realmente remover o registro da O.S. da placa "${p.placa}" (${p.cliente})?`)) {
+				const atualizados = todosPedidos.filter((item) => item.id !== osId);
+				localStorage.setItem('pedidos', JSON.stringify(atualizados));
+				renderizarTabelas();
+			}
+		});
+	});
+}
+
+// Modal de Encerramento e Pagamento
+function abrirModalEncerramento(osId) {
+	const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+	const p = pedidos.find((item) => item.id === osId);
+	if (!p) return;
+
+	pedidoSelecionadoParaEncerrar = p;
+	const corObj = obterCorVeiculo(p.cor);
+
+	if (modalTitulo) modalTitulo.textContent = `Receber O.S. - Placa ${p.placa}`;
+	if (modalDetalhesVeiculo) {
+		modalDetalhesVeiculo.innerHTML = `
+			${renderizarIconeCarro(corObj, 28)}
+			<div>
+				<strong class="badge-placa">${p.placa}</strong> 
+				<span style="font-size:0.85rem; color:var(--text-muted); margin-left:6px;">${corObj.nome} ${p.modelo ? '• ' + p.modelo : ''}</span>
+			</div>
+		`;
 	}
+
+	if (modalDetalhesCliente) {
+		modalDetalhesCliente.innerHTML = `👤 Cliente: <strong>${p.cliente}</strong> (Entrada: ${p.data} às ${p.horaEntrada || '--:--'})`;
+	}
+
+	if (modalDetalhesServicos) {
+		modalDetalhesServicos.innerHTML = `🛠️ Serviços: <strong>${p.servicos}</strong>`;
+	}
+
+	if (modalValorFinal) {
+		modalValorFinal.value = parseFloat(p.valor || 0).toFixed(2);
+	}
+
+	if (modalFormaPagamento) {
+		modalFormaPagamento.value = 'Pix';
+	}
+
+	modalEncerramento.classList.add('open');
+}
+
+function fecharModalEncerramento() {
+	modalEncerramento.classList.remove('open');
+	pedidoSelecionadoParaEncerrar = null;
+}
+
+if (modalFecharBtn) modalFecharBtn.addEventListener('click', fecharModalEncerramento);
+if (modalCancelarBtn) modalCancelarBtn.addEventListener('click', fecharModalEncerramento);
+
+// Submissão do Encerramento
+if (formEncerramento) {
+	formEncerramento.addEventListener('submit', (e) => {
+		e.preventDefault();
+		if (!pedidoSelecionadoParaEncerrar) return;
+
+		const valorFinal = parseFloat(modalValorFinal.value) || 0;
+		const formaPagamento = modalFormaPagamento.value;
+		const hoje = obterDataHojeISO();
+		const horaAtual = obterHoraAtual();
+
+		const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+		const index = pedidos.findIndex((item) => item.id === pedidoSelecionadoParaEncerrar.id);
+
+		if (index !== -1) {
+			pedidos[index].status = 'encerrado';
+			pedidos[index].valor = valorFinal;
+			pedidos[index].formaPagamento = formaPagamento;
+			pedidos[index].dataEncerramento = hoje;
+			pedidos[index].horaEncerramento = horaAtual;
+
+			localStorage.setItem('pedidos', JSON.stringify(pedidos));
+		}
+
+		fecharModalEncerramento();
+		renderizarTabelas();
+
+		// Alterna para a aba de encerrados para feedback imediato
+		if (tabEncerradosBtn) tabEncerradosBtn.click();
+	});
+}
+
+// Formulário de Entrada do Veículo (Abrir O.S.)
+if (pedidoForm) {
+	pedidoForm.addEventListener('submit', (e) => {
+		e.preventDefault();
+
+		const clienteNome = pedidoCliente.value.trim();
+		const placa = pedidoPlaca.value.trim().toUpperCase();
+		const cor = pedidoCor.value;
+		const modelo = pedidoModelo.value.trim();
+		const valor = parseFloat(pedidoValor.value) || 0;
+		let data = pedidoData.value;
+		if (!data) data = obterDataHojeISO();
+
+		const servicosSelecionados = Array.from(pedidoServico.selectedOptions)
+			.filter((o) => !o.disabled)
+			.map((o) => o.value);
+
+		if (servicosSelecionados.length === 0) {
+			alert('Por favor, selecione ao menos um serviço para o atendimento.');
+			return;
+		}
+
+		// Se o cliente ainda não estiver cadastrado na base de clientes, sugerimos salvar
+		const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+		const clienteExiste = clientes.some((c) => c.nome.toLowerCase() === clienteNome.toLowerCase());
+		if (!clienteExiste && clienteNome) {
+			clientes.push({
+				nome: clienteNome,
+				cpf: '',
+				tel1: '',
+				wpp1: '❌',
+				tel2: '',
+				wpp2: '❌',
+				endereco: ''
+			});
+			localStorage.setItem('clientes', JSON.stringify(clientes));
+		}
+
+		const novoPedido = {
+			id: 'os_' + Date.now(),
+			cliente: clienteNome,
+			placa: placa,
+			cor: cor,
+			modelo: modelo,
+			servicos: servicosSelecionados.join(', '),
+			data: data,
+			horaEntrada: obterHoraAtual(),
+			valor: valor,
+			status: 'aberto', // Veículo entra no pátio com O.S. aberta
+			formaPagamento: '',
+			dataEncerramento: '',
+			horaEncerramento: ''
+		};
+
+		const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+		pedidos.push(novoPedido);
+		localStorage.setItem('pedidos', JSON.stringify(pedidos));
+
+		// Limpa formulário
+		pedidoForm.reset();
+		if (pedidoData) pedidoData.value = obterDataHojeISO();
+		popularCoresVeiculo();
+		renderizarTabelas();
+
+		// Rola até o pátio e garante a aba ativa
+		if (tabPatioBtn) tabPatioBtn.click();
+	});
+}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+	normalizarDadosPedidos();
+	popularCoresVeiculo();
+	carregarSelectServicos();
+	renderizarTabelas();
 });
-
-// Inicializar
-atualizarPedidos();
