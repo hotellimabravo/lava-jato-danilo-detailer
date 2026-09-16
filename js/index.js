@@ -24,6 +24,31 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (elFaturamentoHoje) elFaturamentoHoje.textContent = `R$ ${faturamentoHoje.toFixed(2)}`;
 	if (elTotalClientes) elTotalClientes.textContent = clientes.length;
 
+	// Adapta rótulos e subtítulos do Dashboard ao segmento configurado
+	if (typeof BrandService !== 'undefined') {
+		const visual = BrandService.getInfoVisual();
+		const subtitleEl = document.querySelector('.page-subtitle');
+		if (subtitleEl && visual.subtitulo) {
+			subtitleEl.textContent = `Acompanhe atendimentos em andamento, faturamento diário e movimentação em ${visual.subtitulo}`;
+		}
+
+		// Atualiza ícone do card de atendimentos em aberto se não for lava jato
+		const statIconAtendimento = document.querySelector('.stat-card .stat-icon.blue');
+		if (statIconAtendimento) {
+			statIconAtendimento.textContent = visual.icone;
+		}
+
+		const statLabelAtendimento = document.querySelector('.stat-card .stat-info .stat-label');
+		if (statLabelAtendimento && visual.infoTipo) {
+			statLabelAtendimento.textContent = `${visual.infoTipo.termoItem}s em Aberto`;
+		}
+
+		const acaoNovaOSIcon = document.querySelector('#acaoNovaOS .action-btn-icon');
+		if (acaoNovaOSIcon) {
+			acaoNovaOSIcon.textContent = visual.icone;
+		}
+	}
+
 	// Tabela: Carros no Pátio Agora
 	const corpoPatioDashboard = document.getElementById('corpoPatioDashboard');
 	if (corpoPatioDashboard) {

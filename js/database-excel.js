@@ -87,10 +87,36 @@ class DatabaseExcelService {
 			'Observações': cx.observacoes || cx.motivoFechamento || ''
 		}));
 
-		// 5. Aba Informações e Metadados do Sistema
+		// 5. Aba Configuração do Negócio
+		const configNegocio = (typeof BrandService !== 'undefined' && BrandService.getConfig) 
+			? BrandService.getConfig() 
+			: (JSON.parse(localStorage.getItem('config_negocio')) || {
+				nomeEstabelecimento: 'Danilo Detailer',
+				razaoSocial: '',
+				cnpj: '',
+				tipoNegocio: 'lava_jato',
+				tipoNegocioCustom: '',
+				telefone: '',
+				endereco: '',
+				responsavel: ''
+			});
+
+		const dadosNegocio = [
+			{ 'Campo': 'Nome do Estabelecimento', 'Valor': configNegocio.nomeEstabelecimento || '' },
+			{ 'Campo': 'Razão Social', 'Valor': configNegocio.razaoSocial || '' },
+			{ 'Campo': 'CNPJ', 'Valor': configNegocio.cnpj || '' },
+			{ 'Campo': 'Tipo de Negócio', 'Valor': configNegocio.tipoNegocio || 'lava_jato' },
+			{ 'Campo': 'Tipo de Negócio Personalizado', 'Valor': configNegocio.tipoNegocioCustom || '' },
+			{ 'Campo': 'Telefone / WhatsApp', 'Valor': configNegocio.telefone || '' },
+			{ 'Campo': 'Endereço Completo', 'Valor': configNegocio.endereco || '' },
+			{ 'Campo': 'Responsável pelo Estabelecimento', 'Valor': configNegocio.responsavel || '' },
+			{ 'Campo': 'Ícone do Logo', 'Valor': configNegocio.iconeCustom || '' }
+		];
+
+		// 6. Aba Informações e Metadados do Sistema
 		const dataExport = new Date();
 		const dadosMeta = [
-			{ 'Propriedade': 'Sistema', 'Valor': 'Lava Jato - Danilo Detailer' },
+			{ 'Propriedade': 'Sistema', 'Valor': configNegocio.nomeEstabelecimento ? `${configNegocio.tipoNegocio.toUpperCase()} - ${configNegocio.nomeEstabelecimento}` : 'Lava Jato - Danilo Detailer' },
 			{ 'Propriedade': 'Data da Exportação', 'Valor': dataExport.toLocaleDateString('pt-BR') + ' ' + dataExport.toLocaleTimeString('pt-BR') },
 			{ 'Propriedade': 'Total de Clientes', 'Valor': clientes.length },
 			{ 'Propriedade': 'Total de Serviços', 'Valor': servicos.length },
@@ -102,12 +128,14 @@ class DatabaseExcelService {
 		// Criar Workbook
 		const wb = XLSX.utils.book_new();
 
+		const wsNegocio = XLSX.utils.json_to_sheet(dadosNegocio);
+		const wsPedidos = XLSX.utils.json_to_sheet(dadosPedidos.length ? dadosPedidos : [{}]);
 		const wsClientes = XLSX.utils.json_to_sheet(dadosClientes.length ? dadosClientes : [{}]);
 		const wsServicos = XLSX.utils.json_to_sheet(dadosServicos.length ? dadosServicos : [{}]);
-		const wsPedidos = XLSX.utils.json_to_sheet(dadosPedidos.length ? dadosPedidos : [{}]);
 		const wsCaixas = XLSX.utils.json_to_sheet(dadosCaixas.length ? dadosCaixas : [{}]);
 		const wsMeta = XLSX.utils.json_to_sheet(dadosMeta);
 
+		XLSX.utils.book_append_sheet(wb, wsNegocio, 'Configuracao_Negocio');
 		XLSX.utils.book_append_sheet(wb, wsPedidos, 'Pedidos_OS');
 		XLSX.utils.book_append_sheet(wb, wsClientes, 'Clientes');
 		XLSX.utils.book_append_sheet(wb, wsServicos, 'Servicos');
@@ -116,7 +144,12 @@ class DatabaseExcelService {
 
 		// Nome do arquivo com timestamp
 		const timestamp = dataExport.toISOString().replace(/[:.]/g, '-').slice(0, 19);
-		const nomeArquivo = `database_lavajato_${timestamp}.xlsx`;
+		const prefixoArquivo = (configNegocio.nomeEstabelecimento || 'database')
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.replace(/[^a-z0-9]/g, '_');
+		const nomeArquivo = `database_${prefixoArquivo}_${timestamp}.xlsx`;
 
 		XLSX.writeFile(wb, nomeArquivo);
 
@@ -136,6 +169,18 @@ class DatabaseExcelService {
 		if (typeof XLSX === 'undefined') {
 			throw new Error('A biblioteca SheetJS/XLSX não foi carregada.');
 		}
+
+		const modeloNegocio = [
+			{ 'Campo': 'Nome do Estabelecimento', 'Valor': 'Danilo Detailer' },
+			{ 'Campo': 'Razão Social', 'Valor': 'Danilo Detailer Estética Automotiva ME' },
+			{ 'Campo': 'CNPJ', 'Valor': '00.000.000/0001-00' },
+			{ 'Campo': 'Tipo de Negócio', 'Valor': 'lava_jato' },
+			{ 'Campo': 'Tipo de Negócio Personalizado', 'Valor': '' },
+			{ 'Campo': 'Telefone / WhatsApp', 'Valor': '(11) 99999-0000' },
+			{ 'Campo': 'Endereço Completo', 'Valor': 'Av. Principal, 1200 - Centro' },
+			{ 'Campo': 'Responsável pelo Estabelecimento', 'Valor': 'Danilo' },
+			{ 'Campo': 'Ícone do Logo', 'Valor': '🚗' }
+		];
 
 		const modeloClientes = [
 			{ 'Nome do Cliente': 'João da Silva', 'Telefone (Código ID)': '(11) 99999-1111', 'WhatsApp Principal': '✅', 'Telefone Secundário': '', 'WhatsApp Secundário': '❌', 'Endereço': 'Rua das Palmeiras, 100' },
@@ -158,12 +203,13 @@ class DatabaseExcelService {
 		];
 
 		const wb = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(modeloNegocio), 'Configuracao_Negocio');
 		XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(modeloPedidos), 'Pedidos_OS');
 		XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(modeloClientes), 'Clientes');
 		XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(modeloServicos), 'Servicos');
 		XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(modeloCaixas), 'Livro_Caixa');
 
-		XLSX.writeFile(wb, 'modelo_database_lavajato.xlsx');
+		XLSX.writeFile(wb, 'modelo_database_sistema.xlsx');
 	}
 
 	// ----------------------------------------------------------------------
@@ -294,6 +340,42 @@ class DatabaseExcelService {
 							};
 						}).filter(cx => cx.data.length > 0);
 						resultado.caixasLidos = novosCaixas.length;
+					}
+
+					// 5. Processar Configuração do Negócio (se existir na planilha)
+					const sheetNegocioNome = workbook.SheetNames.find(n => 
+						n.toLowerCase().includes('negocio') || n.toLowerCase().includes('negócio') || n.toLowerCase().includes('empresa') || n.toLowerCase().includes('estabelecimento')
+					);
+					if (sheetNegocioNome) {
+						const sheet = workbook.Sheets[sheetNegocioNome];
+						const json = XLSX.utils.sheet_to_json(sheet);
+						const mapCampos = {};
+						json.forEach(row => {
+							const k = String(row['Campo'] || row['campo'] || row['Propriedade'] || '').trim();
+							const v = String(row['Valor'] || row['valor'] || '').trim();
+							if (k) mapCampos[k] = v;
+						});
+
+						const dadosNegocioImportado = {};
+						if (mapCampos['Nome do Estabelecimento']) dadosNegocioImportado.nomeEstabelecimento = mapCampos['Nome do Estabelecimento'];
+						if (mapCampos['Razão Social']) dadosNegocioImportado.razaoSocial = mapCampos['Razão Social'];
+						if (mapCampos['CNPJ']) dadosNegocioImportado.cnpj = mapCampos['CNPJ'];
+						if (mapCampos['Tipo de Negócio']) dadosNegocioImportado.tipoNegocio = mapCampos['Tipo de Negócio'];
+						if (mapCampos['Tipo de Negócio Personalizado']) dadosNegocioImportado.tipoNegocioCustom = mapCampos['Tipo de Negócio Personalizado'];
+						if (mapCampos['Telefone / WhatsApp']) dadosNegocioImportado.telefone = mapCampos['Telefone / WhatsApp'];
+						if (mapCampos['Endereço Completo']) dadosNegocioImportado.endereco = mapCampos['Endereço Completo'];
+						if (mapCampos['Responsável pelo Estabelecimento']) dadosNegocioImportado.responsavel = mapCampos['Responsável pelo Estabelecimento'];
+						if (mapCampos['Ícone do Logo']) dadosNegocioImportado.iconeCustom = mapCampos['Ícone do Logo'];
+
+						if (Object.keys(dadosNegocioImportado).length > 0) {
+							if (typeof BrandService !== 'undefined' && BrandService.salvarConfig) {
+								BrandService.salvarConfig(dadosNegocioImportado);
+							} else {
+								const atual = JSON.parse(localStorage.getItem('config_negocio')) || {};
+								localStorage.setItem('config_negocio', JSON.stringify({ ...atual, ...dadosNegocioImportado }));
+							}
+							resultado.negocioAtualizado = true;
+						}
 					}
 
 					// Gravação no banco de dados local com base no modo

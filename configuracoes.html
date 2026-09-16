@@ -44,7 +44,12 @@
 				<aside class="settings-sidebar">
 					<span class="settings-sidebar-title">Painel de Ajustes</span>
 					
-					<button type="button" class="settings-nav-item active" id="tabNavDatabase" onclick="alternarAbaConfig('database')">
+					<button type="button" class="settings-nav-item active" id="tabNavNegocio" onclick="alternarAbaConfig('negocio')">
+						<span class="settings-nav-icon">🏢</span>
+						<span>Negócio & Empresa</span>
+					</button>
+
+					<button type="button" class="settings-nav-item" id="tabNavDatabase" onclick="alternarAbaConfig('database')">
 						<span class="settings-nav-icon">🗄️</span>
 						<span>Banco de Dados</span>
 					</button>
@@ -60,9 +65,217 @@
 				<div class="settings-content-area">
 					
 					<!-- ==================================================== -->
-					<!-- ABA 1: BANCO DE DADOS (DATABASE EXCEL) -->
+					<!-- ABA 1: CONFIGURAÇÃO DO NEGÓCIO & SEGMENTO -->
 					<!-- ==================================================== -->
-					<div id="abaConteudoDatabase">
+					<div id="abaConteudoNegocio">
+						<!-- Feedback ao Salvar Negócio -->
+						<div id="msgSucessoNegocio" class="db-status-banner" style="display: none; background: #f0fdf4; border-color: #bbf7d0; color: #166534; margin-bottom: 20px;">
+							<span class="db-status-icon">✅</span>
+							<div class="db-status-text">
+								<strong>Dados do Estabelecimento Salvos com Sucesso!</strong>
+								<p style="color: #15803d;">A identidade visual foi atualizada em todas as páginas e já sincronizada com a base de dados.</p>
+							</div>
+						</div>
+
+						<div class="negocio-hero-card">
+							<!-- Topo do Card com Título e Descrição -->
+							<div class="negocio-hero-top">
+								<div class="negocio-hero-title-group">
+									<h2 class="negocio-hero-title">
+										<span>🏢 Personalização e Perfil do Estabelecimento</span>
+									</h2>
+									<p class="negocio-hero-desc">
+										Adapte o sistema sob medida para a sua marca ou segmento. O <strong>Tipo de Negócio</strong> define a categoria e o ícone, enquanto o <strong>Nome do Estabelecimento</strong> é exibido em destaque no cabeçalho e relatórios.
+									</p>
+								</div>
+								<span class="badge badge-primary" id="badgePreviewSegmento" style="padding: 6px 12px; font-size: 0.85rem;">🚗 Lava Jato</span>
+							</div>
+
+							<!-- Live Header Preview Banner -->
+							<div class="negocio-preview-box">
+								<div class="negocio-preview-identity">
+									<div class="negocio-preview-avatar" id="previewLogo">🚗</div>
+									<div class="negocio-preview-texts">
+										<span class="negocio-preview-title" id="previewTitulo">LAVA JATO</span>
+										<span class="negocio-preview-sub" id="previewSubtitulo">Danilo Detailer</span>
+									</div>
+								</div>
+								<div style="text-align: right;">
+									<span class="negocio-preview-tag">Prévia do Topo</span>
+									<div style="font-size: 0.78rem; color: #cbd5e1; margin-top: 2px;">Atualiza em tempo real enquanto você digita</div>
+								</div>
+							</div>
+
+							<form id="formConfigNegocio" onsubmit="salvarConfiguracaoNegocio(event)">
+								<!-- Seletor Visual de Segmento / Nicho -->
+								<div style="margin-bottom: 24px;">
+									<div class="segment-selector-title">
+										<span>1. Escolha o Segmento de Atuação *</span>
+										<small style="color: var(--text-muted); font-weight: 500;">Clique no nicho correspondente</small>
+									</div>
+
+									<div class="segment-grid">
+										<div class="segment-option-card active" data-segment="lava_jato" onclick="selecionarSegmentoCard('lava_jato')">
+											<div class="segment-icon-badge">🚗</div>
+											<div class="segment-info">
+												<span class="segment-name">Lava Jato</span>
+												<span class="segment-subtitle">Estética Automotiva</span>
+											</div>
+										</div>
+
+										<div class="segment-option-card" data-segment="barbearia" onclick="selecionarSegmentoCard('barbearia')">
+											<div class="segment-icon-badge">💈</div>
+											<div class="segment-info">
+												<span class="segment-name">Barbearia</span>
+												<span class="segment-subtitle">Salão & Beleza</span>
+											</div>
+										</div>
+
+										<div class="segment-option-card" data-segment="assistencia" onclick="selecionarSegmentoCard('assistencia')">
+											<div class="segment-icon-badge">📱</div>
+											<div class="segment-info">
+												<span class="segment-name">Assistência</span>
+												<span class="segment-subtitle">Celulares & TI</span>
+											</div>
+										</div>
+
+										<div class="segment-option-card" data-segment="mecanica" onclick="selecionarSegmentoCard('mecanica')">
+											<div class="segment-icon-badge">🔧</div>
+											<div class="segment-info">
+												<span class="segment-name">Oficina</span>
+												<span class="segment-subtitle">Mecânica & Motos</span>
+											</div>
+										</div>
+
+										<div class="segment-option-card" data-segment="petshop" onclick="selecionarSegmentoCard('petshop')">
+											<div class="segment-icon-badge">🐾</div>
+											<div class="segment-info">
+												<span class="segment-name">Pet Shop</span>
+												<span class="segment-subtitle">Banho & Tosa</span>
+											</div>
+										</div>
+
+										<div class="segment-option-card" data-segment="geral" onclick="selecionarSegmentoCard('geral')">
+											<div class="segment-icon-badge">🛠️</div>
+											<div class="segment-info">
+												<span class="segment-name">Outro Segmento</span>
+												<span class="segment-subtitle">Personalizado</span>
+											</div>
+										</div>
+									</div>
+
+									<!-- Input Oculto de Segmento para o formulário e compatibilidade -->
+									<select id="cfgTipoNegocio" required style="display: none;" onchange="aoMudarTipoNegocio()">
+										<option value="lava_jato">🚗 Lava Jato / Estética Automotiva</option>
+										<option value="barbearia">💈 Barbearia / Salão de Beleza</option>
+										<option value="assistencia">📱 Assistência Técnica / Celulares e TI</option>
+										<option value="mecanica">🔧 Oficina Mecânica / Auto Peças</option>
+										<option value="petshop">🐾 Pet Shop / Banho e Tosa</option>
+										<option value="geral">🛠️ Prestador de Serviços Geral / Outro</option>
+									</select>
+
+									<!-- Campo Personalizado de Segmento se selecionar Outro -->
+									<div id="rowTipoCustom" style="display: none; margin-top: 10px; background: var(--bg-surface); padding: 14px 16px; border-radius: var(--radius-sm); border: 1px dashed var(--border-color);">
+										<div class="form-group" style="width: 100%;">
+											<label for="cfgTipoCustom" style="font-weight: 700; color: var(--text-main);">
+												🏷️ Digite o nome da Categoria / Segmento Personalizado:
+											</label>
+											<input
+												type="text"
+												id="cfgTipoCustom"
+												placeholder="Ex: CLÍNICA ESTÉTICA, CONSULTORIA, MARCENARIA, BIKE SHOP..." />
+											<span class="field-helper">Este nome será exibido em caixa alta no título principal do cabeçalho.</span>
+										</div>
+									</div>
+								</div>
+
+								<!-- Bloco 2: Identificação Comercial -->
+								<div class="negocio-form-block" style="margin-bottom: 18px;">
+									<div class="negocio-block-heading">
+										<span>🏷️ 2. Identificação Comercial</span>
+									</div>
+
+									<div class="negocio-fields-grid">
+										<div class="form-group">
+											<label for="cfgNomeEstabelecimento">Nome do Estabelecimento (Nome Fantasia) *</label>
+											<input
+												type="text"
+												id="cfgNomeEstabelecimento"
+												required
+												placeholder="Ex: Barbearia do Zé, Danilo Detailer, TechFix..." />
+											<span class="field-helper">Aparece como subtítulo da marca no topo do sistema e nas O.S.</span>
+										</div>
+
+										<div class="form-group">
+											<label for="cfgRazaoSocial">Razão Social (Registro Oficial)</label>
+											<input
+												type="text"
+												id="cfgRazaoSocial"
+												placeholder="Ex: José da Silva Serviços ME" />
+											<span class="field-helper">Utilizado em comprovantes e relatórios oficiais.</span>
+										</div>
+
+										<div class="form-group">
+											<label for="cfgCnpj">CNPJ</label>
+											<input
+												type="text"
+												id="cfgCnpj"
+												placeholder="00.000.000/0000-00" />
+											<span class="field-helper">Preenchimento com máscara automática.</span>
+										</div>
+									</div>
+								</div>
+
+								<!-- Bloco 3: Contato, Responsável e Localização -->
+								<div class="negocio-form-block" style="margin-bottom: 22px;">
+									<div class="negocio-block-heading">
+										<span>📍 3. Contato, Responsável & Localização</span>
+									</div>
+
+									<div class="negocio-fields-grid three-col">
+										<div class="form-group">
+											<label for="cfgTelefone">Telefone / WhatsApp Comercial</label>
+											<input
+												type="tel"
+												id="cfgTelefone"
+												placeholder="(00) 00000-0000" />
+											<span class="field-helper">Para contato nos cabeçalhos e mensagens.</span>
+										</div>
+
+										<div class="form-group">
+											<label for="cfgResponsavel">Responsável pelo Estabelecimento</label>
+											<input
+												type="text"
+												id="cfgResponsavel"
+												placeholder="Nome do proprietário ou gerente" />
+											<span class="field-helper">Nome da pessoa responsável pela operação.</span>
+										</div>
+
+										<div class="form-group" style="grid-column: span 1;">
+											<label for="cfgEndereco">Endereço Completo</label>
+											<input
+												type="text"
+												id="cfgEndereco"
+												placeholder="Rua, número, bairro, cidade - UF" />
+											<span class="field-helper">Endereço físico de atendimento.</span>
+										</div>
+									</div>
+								</div>
+
+								<!-- Botão de Ação -->
+								<div class="form-actions" style="margin-top: 0; justify-content: flex-end; padding-top: 6px;">
+									<button type="submit" class="btn btn-primary btn-lg" id="btnSalvarNegocio" style="padding: 12px 28px; font-weight: 700;">
+										💾 Salvar e Aplicar Identidade do Negócio
+									</button>
+								</div>
+							</form>
+						</div>
+					</div>
+
+					<!-- ==================================================== -->
+					<!-- ABA 2: BANCO DE DADOS (DATABASE EXCEL) -->
+					<!-- ==================================================== -->
+					<div id="abaConteudoDatabase" style="display: none;">
 						
 						<!-- Status de Gravação em Tempo Real -->
 						<div class="db-status-banner" id="bannerStatusDb">
@@ -221,6 +434,7 @@
 		</main>
 
 		<!-- Scripts -->
+		<script src="js/brand-service.js"></script>
 		<script src="js/xlsx.full.min.js"></script>
 		<script src="js/database-excel.js"></script>
 		<script src="js/configuracoes.js"></script>

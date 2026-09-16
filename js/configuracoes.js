@@ -1,33 +1,251 @@
 // ==========================================================================
-// Lógica da Página de Configurações e Gerenciamento de Database Excel
+// Lógica da Página de Configurações, Negócio e Gerenciamento de Database Excel
 // ==========================================================================
 
 let arquivoExcelSelecionado = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+	carregarFormularioNegocio();
 	atualizarResumoEstatisticas();
 	configurarDropzone();
+	mascararCamposNegocio();
 });
 
-// Alternância de Abas
+// Alternância de Abas (Negócio, Database, Usuários)
 function alternarAbaConfig(aba) {
+	const tabNegocio = document.getElementById('tabNavNegocio');
 	const tabDatabase = document.getElementById('tabNavDatabase');
 	const tabUsuarios = document.getElementById('tabNavUsuarios');
+
+	const conteudoNegocio = document.getElementById('abaConteudoNegocio');
 	const conteudoDatabase = document.getElementById('abaConteudoDatabase');
 	const conteudoUsuarios = document.getElementById('abaConteudoUsuarios');
 
-	if (aba === 'database') {
-		tabDatabase.classList.add('active');
-		tabUsuarios.classList.remove('active');
-		conteudoDatabase.style.display = 'block';
-		conteudoUsuarios.style.display = 'none';
+	// Desativa todas
+	[tabNegocio, tabDatabase, tabUsuarios].forEach(t => t && t.classList.remove('active'));
+	[conteudoNegocio, conteudoDatabase, conteudoUsuarios].forEach(c => c && (c.style.display = 'none'));
+
+	if (aba === 'negocio') {
+		if (tabNegocio) tabNegocio.classList.add('active');
+		if (conteudoNegocio) conteudoNegocio.style.display = 'block';
+		carregarFormularioNegocio();
+	} else if (aba === 'database') {
+		if (tabDatabase) tabDatabase.classList.add('active');
+		if (conteudoDatabase) conteudoDatabase.style.display = 'block';
 		atualizarResumoEstatisticas();
 	} else if (aba === 'usuarios') {
-		tabUsuarios.classList.add('active');
-		tabDatabase.classList.remove('active');
-		conteudoDatabase.style.display = 'none';
-		conteudoUsuarios.style.display = 'block';
+		if (tabUsuarios) tabUsuarios.classList.add('active');
+		if (conteudoUsuarios) conteudoUsuarios.style.display = 'block';
 	}
+}
+
+// --------------------------------------------------------------------------
+// LÓGICA DA ABA NEGÓCIO
+// --------------------------------------------------------------------------
+
+function mascararCamposNegocio() {
+	const inputCnpj = document.getElementById('cfgCnpj');
+	if (inputCnpj) {
+		inputCnpj.addEventListener('input', (e) => {
+			let v = e.target.value.replace(/\D/g, '');
+			if (v.length > 14) v = v.substring(0, 14);
+			if (v.length > 12) {
+				e.target.value = `${v.substring(0, 2)}.${v.substring(2, 5)}.${v.substring(5, 8)}/${v.substring(8, 12)}-${v.substring(12)}`;
+			} else if (v.length > 8) {
+				e.target.value = `${v.substring(0, 2)}.${v.substring(2, 5)}.${v.substring(5, 8)}/${v.substring(8)}`;
+			} else if (v.length > 5) {
+				e.target.value = `${v.substring(0, 2)}.${v.substring(2, 5)}.${v.substring(5)}`;
+			} else if (v.length > 2) {
+				e.target.value = `${v.substring(0, 2)}.${v.substring(2)}`;
+			} else {
+				e.target.value = v;
+			}
+		});
+	}
+
+	const inputTel = document.getElementById('cfgTelefone');
+	if (inputTel) {
+		inputTel.addEventListener('input', (e) => {
+			let v = e.target.value.replace(/\D/g, '');
+			if (v.length > 11) v = v.substring(0, 11);
+			if (v.length > 10) {
+				e.target.value = `(${v.substring(0, 2)}) ${v.substring(2, 7)}-${v.substring(7)}`;
+			} else if (v.length > 6) {
+				e.target.value = `(${v.substring(0, 2)}) ${v.substring(2, 6)}-${v.substring(6)}`;
+			} else if (v.length > 2) {
+				e.target.value = `(${v.substring(0, 2)}) ${v.substring(2)}`;
+			} else if (v.length > 0) {
+				e.target.value = `(${v}`;
+			} else {
+				e.target.value = '';
+			}
+		});
+	}
+
+	const inputNome = document.getElementById('cfgNomeEstabelecimento');
+	if (inputNome) {
+		inputNome.addEventListener('input', () => atualizarPreviewCabecalho());
+	}
+
+	const inputCustom = document.getElementById('cfgTipoCustom');
+	if (inputCustom) {
+		inputCustom.addEventListener('input', () => atualizarPreviewCabecalho());
+	}
+}
+
+function carregarFormularioNegocio() {
+	if (typeof BrandService === 'undefined') return;
+
+	const config = BrandService.getConfig();
+
+	const elNome = document.getElementById('cfgNomeEstabelecimento');
+	const elRazao = document.getElementById('cfgRazaoSocial');
+	const elCnpj = document.getElementById('cfgCnpj');
+	const elTipo = document.getElementById('cfgTipoNegocio');
+	const elTipoCustom = document.getElementById('cfgTipoCustom');
+	const elRowCustom = document.getElementById('rowTipoCustom');
+	const elTel = document.getElementById('cfgTelefone');
+	const elResp = document.getElementById('cfgResponsavel');
+	const elEnd = document.getElementById('cfgEndereco');
+
+	const tipoAtual = config.tipoNegocio || 'lava_jato';
+
+	if (elNome) elNome.value = config.nomeEstabelecimento || '';
+	if (elRazao) elRazao.value = config.razaoSocial || '';
+	if (elCnpj) elCnpj.value = config.cnpj || '';
+	if (elTipo) elTipo.value = tipoAtual;
+	if (elTipoCustom) elTipoCustom.value = config.tipoNegocioCustom || '';
+	if (elTel) elTel.value = config.telefone || '';
+	if (elResp) elResp.value = config.responsavel || '';
+	if (elEnd) elEnd.value = config.endereco || '';
+
+	if (elRowCustom) {
+		elRowCustom.style.display = (tipoAtual === 'geral') ? 'flex' : 'none';
+	}
+
+	// Atualizar cartões visuais de segmento
+	atualizarCardsSegmentoUI(tipoAtual);
+	atualizarPreviewCabecalho();
+}
+
+function selecionarSegmentoCard(segmentoKey) {
+	const elTipo = document.getElementById('cfgTipoNegocio');
+	if (elTipo) {
+		elTipo.value = segmentoKey;
+	}
+	atualizarCardsSegmentoUI(segmentoKey);
+	aoMudarTipoNegocio();
+
+	// Se for segmento geral/personalizado, foca no input
+	if (segmentoKey === 'geral') {
+		const inputCustom = document.getElementById('cfgTipoCustom');
+		if (inputCustom) {
+			setTimeout(() => inputCustom.focus(), 100);
+		}
+	}
+}
+
+function atualizarCardsSegmentoUI(segmentoAtivo) {
+	const cards = document.querySelectorAll('.segment-option-card');
+	cards.forEach(card => {
+		const seg = card.getAttribute('data-segment');
+		if (seg === segmentoAtivo) {
+			card.classList.add('active');
+		} else {
+			card.classList.remove('active');
+		}
+	});
+}
+
+function aoMudarTipoNegocio() {
+	const elTipo = document.getElementById('cfgTipoNegocio');
+	const elRowCustom = document.getElementById('rowTipoCustom');
+	const valor = elTipo ? elTipo.value : 'lava_jato';
+	
+	if (elRowCustom) {
+		elRowCustom.style.display = (valor === 'geral') ? 'flex' : 'none';
+	}
+	atualizarCardsSegmentoUI(valor);
+	atualizarPreviewCabecalho();
+}
+
+function atualizarPreviewCabecalho() {
+	if (typeof BrandService === 'undefined') return;
+
+	const elNome = document.getElementById('cfgNomeEstabelecimento');
+	const elTipo = document.getElementById('cfgTipoNegocio');
+	const elTipoCustom = document.getElementById('cfgTipoCustom');
+
+	const tipoValor = elTipo ? elTipo.value : 'lava_jato';
+	const tipoCustomValor = elTipoCustom ? elTipoCustom.value : '';
+	const nomeValor = (elNome && elNome.value.trim()) ? elNome.value.trim() : 'Danilo Detailer';
+
+	const dadosTemp = {
+		tipoNegocio: tipoValor,
+		tipoNegocioCustom: tipoCustomValor,
+		nomeEstabelecimento: nomeValor
+	};
+
+	const visual = BrandService.getInfoVisual(dadosTemp);
+
+	const previewLogo = document.getElementById('previewLogo');
+	const previewTitulo = document.getElementById('previewTitulo');
+	const previewSubtitulo = document.getElementById('previewSubtitulo');
+	const badgeSegmento = document.getElementById('badgePreviewSegmento');
+
+	if (previewLogo) previewLogo.textContent = visual.icone;
+	if (previewTitulo) previewTitulo.textContent = visual.titulo;
+	if (previewSubtitulo) previewSubtitulo.textContent = visual.subtitulo;
+
+	if (badgeSegmento) {
+		badgeSegmento.textContent = `${visual.icone} ${visual.titulo}`;
+	}
+}
+
+function salvarConfiguracaoNegocio(e) {
+	if (e) e.preventDefault();
+
+	const elNome = document.getElementById('cfgNomeEstabelecimento');
+	const elRazao = document.getElementById('cfgRazaoSocial');
+	const elCnpj = document.getElementById('cfgCnpj');
+	const elTipo = document.getElementById('cfgTipoNegocio');
+	const elTipoCustom = document.getElementById('cfgTipoCustom');
+	const elTel = document.getElementById('cfgTelefone');
+	const elResp = document.getElementById('cfgResponsavel');
+	const elEnd = document.getElementById('cfgEndereco');
+
+	const nomeEstabelecimento = elNome ? elNome.value.trim() : '';
+	if (!nomeEstabelecimento) {
+		alert('Por favor, preencha o Nome do Estabelecimento.');
+		if (elNome) elNome.focus();
+		return;
+	}
+
+	const novosDados = {
+		nomeEstabelecimento: nomeEstabelecimento,
+		razaoSocial: elRazao ? elRazao.value.trim() : '',
+		cnpj: elCnpj ? elCnpj.value.trim() : '',
+		tipoNegocio: elTipo ? elTipo.value : 'lava_jato',
+		tipoNegocioCustom: elTipoCustom ? elTipoCustom.value.trim() : '',
+		telefone: elTel ? elTel.value.trim() : '',
+		responsavel: elResp ? elResp.value.trim() : '',
+		endereco: elEnd ? elEnd.value.trim() : ''
+	};
+
+	if (typeof BrandService !== 'undefined') {
+		BrandService.salvarConfig(novosDados);
+	}
+
+	const msgSucesso = document.getElementById('msgSucessoNegocio');
+	if (msgSucesso) {
+		msgSucesso.style.display = 'flex';
+		msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		setTimeout(() => {
+			msgSucesso.style.display = 'none';
+		}, 5000);
+	}
+
+	atualizarPreviewCabecalho();
 }
 
 // Atualizar diagnóstico da base em tela
