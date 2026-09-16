@@ -50,7 +50,17 @@ const modalValorFinal = document.getElementById('modalValorFinal');
 const modalFormaPagamento = document.getElementById('modalFormaPagamento');
 const modalFecharBtn = document.getElementById('modalFecharBtn');
 const modalCancelarBtn = document.getElementById('modalCancelarBtn');
+const modalCheckImprimirRecibo = document.getElementById('modalCheckImprimirRecibo');
 
+// Modal de Recibo Cupom Fiscal
+const modalRecibo = document.getElementById('modalRecibo');
+const modalReciboConteudo = document.getElementById('modalReciboConteudo');
+const modalReciboTitulo = document.getElementById('modalReciboTitulo');
+const modalReciboFecharBtn = document.getElementById('modalReciboFecharBtn');
+const modalReciboFecharInferiorBtn = document.getElementById('modalReciboFecharInferiorBtn');
+const modalReciboImprimirBtn = document.getElementById('modalReciboImprimirBtn');
+
+let pedidoSelecionadoParaRecibo = null;
 let pedidoSelecionadoParaEncerrar = null;
 
 // Normalização de dados legados no carregamento
@@ -330,14 +340,27 @@ function renderizarTabelas() {
 					<span class="badge badge-payment">${p.formaPagamento || 'Outro'}</span>
 				</td>
 				<td style="text-align: center;">
-					<button type="button" class="btn btn-sm btn-secondary btn-cancelar-os" data-id="${p.id}" style="color: var(--danger);" title="Excluir Registro">
-						🗑️
-					</button>
+					<div style="display: inline-flex; align-items: center; gap: 6px;">
+						<button type="button" class="btn btn-sm btn-recibo-os" data-id="${p.id}" title="Ver e Imprimir Recibo Estilo Cupom Fiscal">
+							🧾 Recibo
+						</button>
+						<button type="button" class="btn btn-sm btn-secondary btn-cancelar-os" data-id="${p.id}" style="color: var(--danger);" title="Excluir Registro">
+							🗑️
+						</button>
+					</div>
 				</td>
 			`;
 			corpoTabelaEncerrados.appendChild(tr);
 		});
 	}
+
+	// Vincular eventos de Visualizar/Imprimir Recibo
+	document.querySelectorAll('.btn-recibo-os').forEach((btn) => {
+		btn.addEventListener('click', (e) => {
+			const osId = e.currentTarget.getAttribute('data-id');
+			abrirModalRecibo(osId);
+		});
+	});
 
 	// Vincular eventos de Receber & Encerrar
 	document.querySelectorAll('.btn-receber-os').forEach((btn) => {
@@ -425,6 +448,8 @@ if (formEncerramento) {
 		const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
 		const index = pedidos.findIndex((item) => item.id === pedidoSelecionadoParaEncerrar.id);
 
+		let pedidoEncerradoFinal = null;
+
 		if (index !== -1) {
 			pedidos[index].status = 'encerrado';
 			pedidos[index].valor = valorFinal;
@@ -432,14 +457,62 @@ if (formEncerramento) {
 			pedidos[index].dataEncerramento = hoje;
 			pedidos[index].horaEncerramento = horaAtual;
 
+			pedidoEncerradoFinal = pedidos[index];
 			localStorage.setItem('pedidos', JSON.stringify(pedidos));
 		}
+
+		const deveImprimirRecibo = !modalCheckImprimirRecibo || modalCheckImprimirRecibo.checked;
 
 		fecharModalEncerramento();
 		renderizarTabelas();
 
 		// Alterna para a aba de encerrados para feedback imediato
 		if (tabEncerradosBtn) tabEncerradosBtn.click();
+
+		// Abre imediatamente o recibo / cupom fiscal para visualização e impressão
+		if (pedidoEncerradoFinal && deveImprimirRecibo) {
+			abrirModalRecibo(pedidoEncerradoFinal.id);
+		}
+	});
+}
+
+// Funções de Abertura, Visualização e Impressão do Recibo Cupom Fiscal
+function abrirModalRecibo(osId) {
+	const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+	const p = pedidos.find((item) => item.id === osId);
+	if (!p) return;
+
+	pedidoSelecionadoParaRecibo = p;
+
+	const numOS = (p.id || '').replace(/^os_/, '').slice(-6) || '000001';
+	if (modalReciboTitulo) {
+		modalReciboTitulo.textContent = `Recibo / Cupom Fiscal - O.S. #${numOS}`;
+	}
+
+	if (modalReciboConteudo && typeof ReciboService !== 'undefined') {
+		modalReciboConteudo.innerHTML = ReciboService.gerarCupomHTML(p);
+	}
+
+	if (modalRecibo) {
+		modalRecibo.classList.add('open');
+	}
+}
+
+function fecharModalRecibo() {
+	if (modalRecibo) {
+		modalRecibo.classList.remove('open');
+	}
+	pedidoSelecionadoParaRecibo = null;
+}
+
+if (modalReciboFecharBtn) modalReciboFecharBtn.addEventListener('click', fecharModalRecibo);
+if (modalReciboFecharInferiorBtn) modalReciboFecharInferiorBtn.addEventListener('click', fecharModalRecibo);
+
+if (modalReciboImprimirBtn) {
+	modalReciboImprimirBtn.addEventListener('click', () => {
+		if (pedidoSelecionadoParaRecibo && typeof ReciboService !== 'undefined') {
+			ReciboService.imprimirCupom(pedidoSelecionadoParaRecibo);
+		}
 	});
 }
 

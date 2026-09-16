@@ -77,6 +77,10 @@ if (historico.length === 0) {
 			? '<span style="color:var(--text-muted); font-size:0.85rem;">Aguardando saída</span>'
 			: `<span class="badge badge-payment">${p.formaPagamento || 'Outro'}</span>`;
 
+		const acaoRecibo = estaAberto
+			? '<span style="color:var(--text-muted); font-size:0.8rem;">-</span>'
+			: `<button type="button" class="btn btn-sm btn-recibo-os" data-id="${p.id}" title="Ver e Imprimir Recibo Estilo Cupom Fiscal">🧾 Recibo</button>`;
+
 		tr.innerHTML = `
 			<td>
 				<div class="veiculo-info-cell">
@@ -92,7 +96,65 @@ if (historico.length === 0) {
 			<td><span class="badge-price">R$ ${valorFormatado}</span></td>
 			<td>${statusBadge}</td>
 			<td>${pagamentoTexto}</td>
+			<td style="text-align: center;">${acaoRecibo}</td>
 		`;
 		tabelaCorpo.appendChild(tr);
+	});
+
+	// Vincular eventos de Visualizar/Imprimir Recibo
+	document.querySelectorAll('.btn-recibo-os').forEach((btn) => {
+		btn.addEventListener('click', (e) => {
+			const osId = e.currentTarget.getAttribute('data-id');
+			abrirModalRecibo(osId);
+		});
+	});
+}
+
+// Modal de Recibo Cupom Fiscal no Histórico
+const modalRecibo = document.getElementById('modalRecibo');
+const modalReciboConteudo = document.getElementById('modalReciboConteudo');
+const modalReciboTitulo = document.getElementById('modalReciboTitulo');
+const modalReciboFecharBtn = document.getElementById('modalReciboFecharBtn');
+const modalReciboFecharInferiorBtn = document.getElementById('modalReciboFecharInferiorBtn');
+const modalReciboImprimirBtn = document.getElementById('modalReciboImprimirBtn');
+
+let pedidoSelecionadoParaRecibo = null;
+
+function abrirModalRecibo(osId) {
+	const todosPedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+	const p = todosPedidos.find((item) => item.id === osId);
+	if (!p) return;
+
+	pedidoSelecionadoParaRecibo = p;
+
+	const numOS = (p.id || '').replace(/^os_/, '').slice(-6) || '000001';
+	if (modalReciboTitulo) {
+		modalReciboTitulo.textContent = `Recibo / Cupom Fiscal - O.S. #${numOS}`;
+	}
+
+	if (modalReciboConteudo && typeof ReciboService !== 'undefined') {
+		modalReciboConteudo.innerHTML = ReciboService.gerarCupomHTML(p);
+	}
+
+	if (modalRecibo) {
+		modalRecibo.classList.add('open');
+	}
+}
+
+function fecharModalRecibo() {
+	if (modalRecibo) {
+		modalRecibo.classList.remove('open');
+	}
+	pedidoSelecionadoParaRecibo = null;
+}
+
+if (modalReciboFecharBtn) modalReciboFecharBtn.addEventListener('click', fecharModalRecibo);
+if (modalReciboFecharInferiorBtn) modalReciboFecharInferiorBtn.addEventListener('click', fecharModalRecibo);
+
+if (modalReciboImprimirBtn) {
+	modalReciboImprimirBtn.addEventListener('click', () => {
+		if (pedidoSelecionadoParaRecibo && typeof ReciboService !== 'undefined') {
+			ReciboService.imprimirCupom(pedidoSelecionadoParaRecibo);
+		}
 	});
 }

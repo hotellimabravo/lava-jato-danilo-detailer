@@ -81,6 +81,7 @@
 								<th>Valor</th>
 								<th>Status O.S.</th>
 								<th>Forma de Pagamento</th>
+								<th style="text-align: center;">Ações</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -91,8 +92,38 @@
 			</div>
 		</main>
 
+		<!-- Modal: Visualização e Impressão do Recibo Estilo Cupom Fiscal -->
+		<div id="modalRecibo" class="modal-overlay">
+			<div class="modal-recibo-card">
+				<div class="modal-header">
+					<div style="display: flex; align-items: center; gap: 8px;">
+						<span style="font-size: 1.25rem;">🧾</span>
+						<div>
+							<h3 style="margin: 0; font-size: 1.05rem;" id="modalReciboTitulo">Recibo / Cupom da O.S.</h3>
+							<small style="color: var(--text-muted); font-size: 0.78rem;">Visualização para impressão térmica ou convencional</small>
+						</div>
+					</div>
+					<button type="button" class="modal-close-btn" id="modalReciboFecharBtn">&times;</button>
+				</div>
+				<div class="recibo-scroll-area">
+					<div id="modalReciboConteudo">
+						<!-- Renderizado dinamicamente via ReciboService -->
+					</div>
+				</div>
+				<div class="modal-footer" style="padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; border-top: 1px solid var(--border-color);">
+					<button type="button" class="btn btn-secondary" id="modalReciboFecharInferiorBtn">
+						Fechar
+					</button>
+					<button type="button" class="btn" id="modalReciboImprimirBtn" style="background-color: var(--primary); display: inline-flex; align-items: center; gap: 6px;">
+						🖨️ Imprimir Recibo Agora
+					</button>
+				</div>
+			</div>
+		</div>
+
 		<script src="js/brand-service.js"></script>
 		<script src="js/caixa-service.js"></script>
+		<script src="js/recibo-service.js"></script>
 		<script src="js/historico.js"></script>
 	</body>
 </html>
