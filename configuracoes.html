@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-		<title>Configurações do Sistema | Danilo Detailer</title>
+		<title>Configurações do Sistema | SEU NEGÓCIO</title>
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
@@ -11,10 +11,10 @@
 		<header class="site-header">
 			<div class="header-inner">
 				<a href="index.html" class="brand-wrapper">
-					<div class="brand-logo">🚗</div>
+					<div class="brand-logo">🛠️</div>
 					<div class="brand-title">
-						<span>Lava Jato</span>
-						<span class="brand-subtitle">Danilo Detailer</span>
+						<span>OUTRO SEGMENTO</span>
+						<span class="brand-subtitle">SEU NEGÓCIO</span>
 					</div>
 				</a>
 				<nav class="navbar">
@@ -88,16 +88,16 @@
 										Adapte o sistema sob medida para a sua marca ou segmento. O <strong>Tipo de Negócio</strong> define a categoria e o ícone, enquanto o <strong>Nome do Estabelecimento</strong> é exibido em destaque no cabeçalho e relatórios.
 									</p>
 								</div>
-								<span class="badge badge-primary" id="badgePreviewSegmento" style="padding: 6px 12px; font-size: 0.85rem;">🚗 Lava Jato</span>
+								<span class="badge badge-primary" id="badgePreviewSegmento" style="padding: 6px 12px; font-size: 0.85rem;">🛠️ Outro Segmento</span>
 							</div>
 
 							<!-- Live Header Preview Banner -->
 							<div class="negocio-preview-box">
 								<div class="negocio-preview-identity">
-									<div class="negocio-preview-avatar" id="previewLogo">🚗</div>
+									<div class="negocio-preview-avatar" id="previewLogo">🛠️</div>
 									<div class="negocio-preview-texts">
-										<span class="negocio-preview-title" id="previewTitulo">LAVA JATO</span>
-										<span class="negocio-preview-sub" id="previewSubtitulo">Danilo Detailer</span>
+										<span class="negocio-preview-title" id="previewTitulo">OUTRO SEGMENTO</span>
+										<span class="negocio-preview-sub" id="previewSubtitulo">SEU NEGÓCIO</span>
 									</div>
 								</div>
 								<div style="text-align: right;">
@@ -115,7 +115,7 @@
 									</div>
 
 									<div class="segment-grid">
-										<div class="segment-option-card active" data-segment="lava_jato" onclick="selecionarSegmentoCard('lava_jato')">
+										<div class="segment-option-card" data-segment="lava_jato" onclick="selecionarSegmentoCard('lava_jato')">
 											<div class="segment-icon-badge">🚗</div>
 											<div class="segment-info">
 												<span class="segment-name">Lava Jato</span>
@@ -155,7 +155,7 @@
 											</div>
 										</div>
 
-										<div class="segment-option-card" data-segment="geral" onclick="selecionarSegmentoCard('geral')">
+										<div class="segment-option-card active" data-segment="geral" onclick="selecionarSegmentoCard('geral')">
 											<div class="segment-icon-badge">🛠️</div>
 											<div class="segment-info">
 												<span class="segment-name">Outro Segmento</span>
@@ -166,12 +166,12 @@
 
 									<!-- Input Oculto de Segmento para o formulário e compatibilidade -->
 									<select id="cfgTipoNegocio" required style="display: none;" onchange="aoMudarTipoNegocio()">
+										<option value="geral" selected>🛠️ Prestador de Serviços Geral / Outro</option>
 										<option value="lava_jato">🚗 Lava Jato / Estética Automotiva</option>
 										<option value="barbearia">💈 Barbearia / Salão de Beleza</option>
 										<option value="assistencia">📱 Assistência Técnica / Celulares e TI</option>
 										<option value="mecanica">🔧 Oficina Mecânica / Auto Peças</option>
 										<option value="petshop">🐾 Pet Shop / Banho e Tosa</option>
-										<option value="geral">🛠️ Prestador de Serviços Geral / Outro</option>
 									</select>
 
 									<!-- Campo Personalizado de Segmento se selecionar Outro -->
@@ -273,7 +273,7 @@
 					</div>
 
 					<!-- ==================================================== -->
-					<!-- ABA 2: BANCO DE DADOS (DATABASE EXCEL) -->
+					<!-- ABA 2: BANCO DE DADOS (DATABASE EXCEL & GOOGLE DRIVE) -->
 					<!-- ==================================================== -->
 					<div id="abaConteudoDatabase" style="display: none;">
 						
@@ -283,6 +283,94 @@
 							<div class="db-status-text">
 								<strong>Gravação Local em Tempo Real: ATIVA</strong>
 								<p>A cada cliente cadastrado, serviço alterado ou O.S. aberta, os dados são salvos imediatamente na memória local persistente. Se faltar energia ou o navegador fechar, suas informações permanecem 100% seguras.</p>
+							</div>
+						</div>
+
+						<!-- Card de Hospedagem em Nuvem via Google Drive -->
+						<div class="gdrive-hero-card" style="margin-top: 18px;" id="cardGoogleDrive">
+							<div class="gdrive-hero-top">
+								<div class="gdrive-hero-title-group">
+									<h2 class="gdrive-hero-title">
+										<span>☁️ Hospedagem em Nuvem no Google Drive do Usuário</span>
+									</h2>
+									<p class="gdrive-hero-desc">
+										Guarde sua base de dados diretamente na sua conta pessoal do Google. O arquivo <code>database_sistema_gestao.xlsx</code> é mantido 100% sob seu controle, com permissão restrita e segura apenas aos arquivos do sistema.
+									</p>
+								</div>
+
+								<!-- Estado Desconectado -->
+								<div id="gdriveEstadoDesconectado">
+									<button type="button" class="gsi-material-button" id="btnConectarGoogle" onclick="conectarGoogleDriveUI()">
+										<div class="gsi-material-button-icon">
+											<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display: block;">
+												<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+												<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+												<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+												<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+												<path fill="none" d="M0 0h48v48H0z"></path>
+											</svg>
+										</div>
+										<span class="gsi-material-button-contents">Conectar Google Drive</span>
+									</button>
+								</div>
+
+								<!-- Estado Conectado -->
+								<div id="gdriveEstadoConectado" style="display: none; align-items: center; gap: 12px; flex-wrap: wrap;">
+									<div class="gdrive-user-badge">
+										<div class="gdrive-user-avatar" id="gdriveUserAvatar">👤</div>
+										<div class="gdrive-user-info">
+											<span class="gdrive-user-name" id="gdriveUserName">Conectado</span>
+											<span class="gdrive-user-email" id="gdriveUserEmail">usuario@gmail.com</span>
+										</div>
+									</div>
+									<button type="button" class="btn btn-outline-danger" style="padding: 6px 12px; font-size: 0.8rem;" onclick="desconectarGoogleDriveUI()">
+										Desconectar
+									</button>
+								</div>
+							</div>
+
+							<!-- Feedback de Status de Operação do Drive -->
+							<div id="msgStatusDrive" class="db-status-banner" style="display: none; margin-bottom: 0;">
+								<span class="db-status-icon" id="msgStatusDriveIcon">☁️</span>
+								<div class="db-status-text">
+									<strong id="msgStatusDriveTitulo">Aguardando ação...</strong>
+									<p id="msgStatusDriveTexto" style="margin-top: 2px;">Detalhes da sincronização</p>
+								</div>
+							</div>
+
+							<!-- Grid com Ações de Sincronização e Restauração do Drive -->
+							<div class="gdrive-actions-grid">
+								<div class="gdrive-action-box">
+									<h4>
+										<span>⬆️ Salvar Dados no Google Drive</span>
+									</h4>
+									<p>
+										Exporta e atualiza a planilha <code>database_sistema_gestao.xlsx</code> no seu Google Drive com todos os clientes, serviços, ordens de serviço e movimentações do caixa.
+									</p>
+									<button type="button" class="btn btn-primary" id="btnSalvarNoDrive" onclick="executarSalvarNoDrive()">
+										☁️ Salvar no Drive Agora
+									</button>
+								</div>
+
+								<div class="gdrive-action-box">
+									<h4>
+										<span>⬇️ Restaurar Base do Google Drive</span>
+									</h4>
+									<p>
+										Lê o arquivo de banco de dados diretamente do seu Google Drive e sincroniza os dados para o seu sistema em caso de troca de computador ou novo dispositivo.
+									</p>
+									<div style="display: flex; gap: 8px;">
+										<button type="button" class="btn btn-secondary" id="btnRestaurarDoDrive" onclick="executarRestaurarDoDrive()" style="flex: 1;">
+											📥 Baixar & Restaurar
+										</button>
+									</div>
+								</div>
+							</div>
+
+							<!-- Detalhes de Conexão e Segurança -->
+							<div style="font-size: 0.78rem; color: #64748b; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
+								<span>🔒 <strong>Privacidade Total</strong>: O sistema acessa estritamente os arquivos criados por ele. Suas fotos, e-mails e arquivos pessoais permanecem inacessíveis.</span>
+								<span id="txtUltimaSyncDrive">Última sincronização com Drive: Não realizada</span>
 							</div>
 						</div>
 
@@ -434,9 +522,11 @@
 		</main>
 
 		<!-- Scripts -->
+		<script src="https://accounts.google.com/gsi/client" async defer></script>
 		<script src="js/brand-service.js"></script>
 		<script src="js/xlsx.full.min.js"></script>
 		<script src="js/database-excel.js"></script>
+		<script src="js/google-drive-service.js"></script>
 		<script src="js/configuracoes.js"></script>
 	</body>
 </html>

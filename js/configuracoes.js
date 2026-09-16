@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	atualizarResumoEstatisticas();
 	configurarDropzone();
 	mascararCamposNegocio();
+	inicializarGoogleDriveUI();
 });
 
 // Alternância de Abas (Negócio, Database, Usuários)
@@ -176,9 +177,9 @@ function atualizarPreviewCabecalho() {
 	const elTipo = document.getElementById('cfgTipoNegocio');
 	const elTipoCustom = document.getElementById('cfgTipoCustom');
 
-	const tipoValor = elTipo ? elTipo.value : 'lava_jato';
+	const tipoValor = elTipo ? elTipo.value : 'geral';
 	const tipoCustomValor = elTipoCustom ? elTipoCustom.value : '';
-	const nomeValor = (elNome && elNome.value.trim()) ? elNome.value.trim() : 'Danilo Detailer';
+	const nomeValor = (elNome && elNome.value.trim()) ? elNome.value.trim() : 'SEU NEGÓCIO';
 
 	const dadosTemp = {
 		tipoNegocio: tipoValor,
@@ -450,3 +451,228 @@ function executarExportacao() {
 		alert('Falha ao exportar base: ' + err.message);
 	}
 }
+
+// --------------------------------------------------------------------------
+// LÓGICA DA INTEGRAÇÃO COM O GOOGLE DRIVE
+// --------------------------------------------------------------------------
+
+function inicializarGoogleDriveUI() {
+	if (typeof GoogleDriveService === 'undefined') return;
+
+	// Inicializa silenciosamente o cliente GSI
+	GoogleDriveService.inicializar().catch(err => {
+		console.warn('GSI inicialização:', err);
+	});
+
+	// Atualiza UI com base no status salvo
+	atualizarStatusGoogleDriveUI();
+
+	// Ouvir eventos customizados de autenticação
+	window.addEventListener('gdrive-auth-changed', (e) => {
+		atualizarStatusGoogleDriveUI();
+	});
+
+	window.addEventListener('gdrive-synced', (e) => {
+		atualizarStatusGoogleDriveUI();
+	});
+}
+
+function atualizarStatusGoogleDriveUI() {
+	const conectado = typeof GoogleDriveService !== 'undefined' && GoogleDriveService.estaConectado();
+	const estadoDesconectado = document.getElementById('gdriveEstadoDesconectado');
+	const estadoConectado = document.getElementById('gdriveEstadoConectado');
+	const elUserName = document.getElementById('gdriveUserName');
+	const elUserEmail = document.getElementById('gdriveUserEmail');
+	const elUserAvatar = document.getElementById('gdriveUserAvatar');
+	const txtSync = document.getElementById('txtUltimaSyncDrive');
+
+	if (estadoDesconectado && estadoConectado) {
+		if (conectado) {
+			estadoDesconectado.style.display = 'none';
+			estadoConectado.style.display = 'inline-flex';
+
+			const email = localStorage.getItem('gdrive_usuario_email') || 'Conta Google Conectada';
+			const nome = localStorage.getItem('gdrive_usuario_nome') || 'Usuário';
+			const foto = localStorage.getItem('gdrive_usuario_foto');
+
+			if (elUserName) elUserName.textContent = nome;
+			if (elUserEmail) elUserEmail.textContent = email;
+			if (elUserAvatar) {
+				if (foto) {
+					elUserAvatar.innerHTML = `<img src="${foto}" alt="${nome}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+				} else {
+					elUserAvatar.textContent = nome.charAt(0).toUpperCase();
+				}
+			}
+		} else {
+			estadoDesconectado.style.display = 'block';
+			estadoConectado.style.display = 'none';
+		}
+	}
+
+	if (txtSync) {
+		const ultSync = localStorage.getItem('gdrive_ultima_sync');
+		if (ultSync) {
+			const data = new Date(ultSync);
+			txtSync.textContent = `Última sincronização com Drive: ${data.toLocaleDateString('pt-BR')} às ${data.toLocaleTimeString('pt-BR')}`;
+		} else {
+			txtSync.textContent = 'Última sincronização com Drive: Nenhuma realizada ainda';
+		}
+	}
+}
+
+async function conectarGoogleDriveUI() {
+	const btn = document.getElementById('btnConectarGoogle');
+	if (btn) {
+		btn.style.opacity = '0.7';
+		btn.style.pointerEvents = 'none';
+	}
+
+	try {
+		await GoogleDriveService.conectar();
+		exibirMensagemDrive('sucesso', 'Conta Google Conectada!', 'Agora você pode salvar ou restaurar seu banco de dados diretamente no Google Drive.');
+		atualizarStatusGoogleDriveUI();
+	} catch (err) {
+		console.error('Falha ao conectar Google:', err);
+		exibirMensagemDrive('erro', 'Falha na conexão com Google', err.message || 'O fluxo de login foi cancelado ou fechado.');
+	} finally {
+		if (btn) {
+			btn.style.opacity = '1';
+			btn.style.pointerEvents = 'auto';
+		}
+	}
+}
+
+async function desconectarGoogleDriveUI() {
+	if (!confirm('Deseja desconectar sua conta Google? O sistema deixará de sincronizar com a nuvem do seu Drive.')) {
+		return;
+	}
+
+	try {
+		await GoogleDriveService.desconectar();
+		exibirMensagemDrive('aviso', 'Conta Google Desconectada', 'A sincronização com o Google Drive foi desativada. Seus dados locais permanecem intactos.');
+		atualizarStatusGoogleDriveUI();
+	} catch (err) {
+		console.error('Erro ao desconectar:', err);
+	}
+}
+
+async function executarSalvarNoDrive() {
+	if (!GoogleDriveService.estaConectado()) {
+		if (confirm('Sua conta Google ainda não está conectada. Deseja conectar agora para salvar no Google Drive?')) {
+			try {
+				await GoogleDriveService.conectar();
+			} catch (e) {
+				return;
+			}
+		} else {
+			return;
+		}
+	}
+
+	const btn = document.getElementById('btnSalvarNoDrive');
+	if (btn) {
+		btn.disabled = true;
+		btn.textContent = '⏳ Salvando no Google Drive...';
+	}
+
+	try {
+		const res = await GoogleDriveService.salvarNoDrive();
+		exibirMensagemDrive(
+			'sucesso', 
+			'Base de Dados Salva no Google Drive!', 
+			`O arquivo "database_sistema_gestao.xlsx" foi sincronizado com sucesso na sua conta em ${new Date().toLocaleTimeString('pt-BR')}.`
+		);
+		atualizarStatusGoogleDriveUI();
+		atualizarResumoEstatisticas();
+	} catch (err) {
+		console.error('Erro ao salvar no Drive:', err);
+		exibirMensagemDrive('erro', 'Erro ao salvar no Google Drive', err.message || 'Verifique sua conexão e tente novamente.');
+	} finally {
+		if (btn) {
+			btn.disabled = false;
+			btn.textContent = '☁️ Salvar no Drive Agora';
+		}
+	}
+}
+
+async function executarRestaurarDoDrive() {
+	if (!GoogleDriveService.estaConectado()) {
+		if (confirm('Sua conta Google ainda não está conectada. Deseja conectar agora para baixar os dados do seu Google Drive?')) {
+			try {
+				await GoogleDriveService.conectar();
+			} catch (e) {
+				return;
+			}
+		} else {
+			return;
+		}
+	}
+
+	if (!confirm('Atenção: Ao restaurar do Google Drive, os dados do sistema serão sincronizados com a versão salva na sua nuvem. Deseja continuar?')) {
+		return;
+	}
+
+	const btn = document.getElementById('btnRestaurarDoDrive');
+	if (btn) {
+		btn.disabled = true;
+		btn.textContent = '⏳ Baixando do Drive...';
+	}
+
+	try {
+		const res = await GoogleDriveService.restaurarDoDrive('substituir');
+		exibirMensagemDrive(
+			'sucesso', 
+			'Base Restaurada com Sucesso do Google Drive!', 
+			`Foram sincronizados: ${res.clientesLidos} clientes, ${res.servicosLidos} serviços, ${res.pedidosLidos} O.S. e ${res.caixasLidos} caixas.`
+		);
+		atualizarStatusGoogleDriveUI();
+		atualizarResumoEstatisticas();
+		if (typeof BrandService !== 'undefined') {
+			BrandService.aplicarEmTudo();
+		}
+	} catch (err) {
+		console.error('Erro ao restaurar do Drive:', err);
+		exibirMensagemDrive('erro', 'Erro ao restaurar do Google Drive', err.message || 'Certifique-se de que já salvou ao menos uma vez o arquivo no Drive.');
+	} finally {
+		if (btn) {
+			btn.disabled = false;
+			btn.textContent = '📥 Baixar & Restaurar';
+		}
+	}
+}
+
+function exibirMensagemDrive(tipo, titulo, texto) {
+	const box = document.getElementById('msgStatusDrive');
+	const icon = document.getElementById('msgStatusDriveIcon');
+	const tit = document.getElementById('msgStatusDriveTitulo');
+	const txt = document.getElementById('msgStatusDriveTexto');
+
+	if (!box) return;
+
+	box.style.display = 'flex';
+
+	if (tipo === 'sucesso') {
+		box.style.background = '#f0fdf4';
+		box.style.borderColor = '#bbf7d0';
+		box.style.color = '#166534';
+		if (icon) icon.textContent = '✅';
+		if (txt) txt.style.color = '#15803d';
+	} else if (tipo === 'erro') {
+		box.style.background = '#fef2f2';
+		box.style.borderColor = '#fecaca';
+		box.style.color = '#991b1b';
+		if (icon) icon.textContent = '⚠️';
+		if (txt) txt.style.color = '#b91c1c';
+	} else {
+		box.style.background = '#eff6ff';
+		box.style.borderColor = '#bfdbfe';
+		box.style.color = '#1e40af';
+		if (icon) icon.textContent = 'ℹ️';
+		if (txt) txt.style.color = '#1d4ed8';
+	}
+
+	if (tit) tit.textContent = titulo;
+	if (txt) txt.textContent = texto;
+}
+

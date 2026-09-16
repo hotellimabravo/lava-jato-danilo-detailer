@@ -43,8 +43,8 @@ const BrandService = {
 			termoRegistro: 'Nome do Pet / Raça'
 		},
 		'geral': {
-			nome: 'Prestador de Serviços / Geral',
-			tituloPadrao: 'SERVIÇOS',
+			nome: 'Outro Segmento / Geral',
+			tituloPadrao: 'OUTRO SEGMENTO',
 			icone: '🛠️',
 			termoItem: 'Atendimento',
 			termoRegistro: 'Referência / Item'
@@ -59,10 +59,10 @@ const BrandService = {
 				const config = JSON.parse(salvo);
 				if (config && typeof config === 'object') {
 					return {
-						nomeEstabelecimento: config.nomeEstabelecimento || 'Danilo Detailer',
+						nomeEstabelecimento: config.nomeEstabelecimento || '',
 						razaoSocial: config.razaoSocial || '',
 						cnpj: config.cnpj || '',
-						tipoNegocio: config.tipoNegocio || 'lava_jato',
+						tipoNegocio: config.tipoNegocio || 'geral',
 						tipoNegocioCustom: config.tipoNegocioCustom || '',
 						telefone: config.telefone || '',
 						endereco: config.endereco || '',
@@ -76,10 +76,10 @@ const BrandService = {
 		}
 
 		return {
-			nomeEstabelecimento: 'Danilo Detailer',
-			razaoSocial: 'Danilo Detailer Estética Automotiva ME',
+			nomeEstabelecimento: '',
+			razaoSocial: '',
 			cnpj: '',
-			tipoNegocio: 'lava_jato',
+			tipoNegocio: 'geral',
 			tipoNegocioCustom: '',
 			telefone: '',
 			endereco: '',
@@ -105,7 +105,7 @@ const BrandService = {
 	// Obtém o título do segmento e o ícone correspondente
 	getInfoVisual: function (config) {
 		const cfg = config || this.getConfig();
-		const infoTipo = this.TIPOS_NEGOCIO[cfg.tipoNegocio] || this.TIPOS_NEGOCIO['lava_jato'];
+		const infoTipo = this.TIPOS_NEGOCIO[cfg.tipoNegocio] || this.TIPOS_NEGOCIO['geral'];
 
 		let tituloNegocio = infoTipo.tituloPadrao;
 		if (cfg.tipoNegocioCustom && cfg.tipoNegocioCustom.trim().length > 0) {
@@ -116,7 +116,7 @@ const BrandService = {
 
 		return {
 			titulo: tituloNegocio,
-			subtitulo: cfg.nomeEstabelecimento || 'Sistema de Gestão',
+			subtitulo: (cfg.nomeEstabelecimento && cfg.nomeEstabelecimento.trim()) ? cfg.nomeEstabelecimento.trim() : 'SEU NEGÓCIO',
 			icone: icone,
 			infoTipo: infoTipo
 		};

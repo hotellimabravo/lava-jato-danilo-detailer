@@ -1513,3 +1513,180 @@ body {
 	line-height: 1.35;
 }
 
+/* ==========================================================================
+   Google Drive Cloud Integration Cards & Buttons
+   ========================================================================== */
+.gdrive-hero-card {
+	background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+	border: 1px solid #bfdbfe;
+	border-radius: var(--radius-md);
+	padding: 24px;
+	box-shadow: 0 4px 16px rgba(37, 99, 235, 0.06);
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.gdrive-hero-top {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 16px;
+	border-bottom: 1px solid #dbeafe;
+	padding-bottom: 18px;
+}
+
+.gdrive-hero-title-group {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.gdrive-hero-title {
+	font-size: 1.22rem;
+	font-weight: 800;
+	color: #1e3a8a;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.gdrive-hero-desc {
+	font-size: 0.88rem;
+	color: #3b82f6;
+	max-width: 650px;
+	line-height: 1.5;
+}
+
+.gdrive-user-badge {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background: #ffffff;
+	border: 1px solid #bfdbfe;
+	padding: 10px 16px;
+	border-radius: var(--radius-md);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.gdrive-user-avatar {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	object-fit: cover;
+	background: #dbeafe;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	color: #1d4ed8;
+}
+
+.gdrive-user-info {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.25;
+}
+
+.gdrive-user-name {
+	font-size: 0.88rem;
+	font-weight: 700;
+	color: var(--text-main);
+}
+
+.gdrive-user-email {
+	font-size: 0.76rem;
+	color: var(--text-muted);
+}
+
+/* Ações de sincronização Google Drive */
+.gdrive-actions-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 14px;
+}
+
+.gdrive-action-box {
+	background: #ffffff;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-sm);
+	padding: 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	transition: all 0.2s ease;
+}
+
+.gdrive-action-box:hover {
+	border-color: #93c5fd;
+	box-shadow: var(--shadow-sm);
+}
+
+.gdrive-action-box h4 {
+	font-size: 0.96rem;
+	font-weight: 700;
+	color: var(--text-main);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.gdrive-action-box p {
+	font-size: 0.82rem;
+	color: var(--text-muted);
+	line-height: 1.45;
+	flex-grow: 1;
+}
+
+/* Botão Oficial Sign in with Google (GIS Style) */
+.gsi-material-button {
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	-webkit-appearance: none;
+	background-color: #ffffff;
+	background-image: none;
+	border: 1px solid #747775;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	color: #1f1f1f;
+	cursor: pointer;
+	font-family: 'Roboto', arial, sans-serif;
+	font-size: 14px;
+	height: 40px;
+	letter-spacing: 0.25px;
+	outline: none;
+	overflow: hidden;
+	padding: 0 12px;
+	position: relative;
+	text-align: center;
+	vertical-align: middle;
+	white-space: nowrap;
+	width: auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.218s, border-color 0.218s, box-shadow 0.218s;
+}
+
+.gsi-material-button:hover {
+	box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+	background-color: #f8fafd;
+}
+
+.gsi-material-button-icon {
+	height: 20px;
+	min-width: 20px;
+	width: 20px;
+	margin-right: 10px;
+}
+
+.gsi-material-button-contents {
+	font-weight: 500;
+}
+
+
