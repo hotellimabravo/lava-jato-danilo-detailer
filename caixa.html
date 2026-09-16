@@ -47,6 +47,9 @@
 						<span id="badgeStatusCaixa" class="badge badge-caixa-aberto">● Aberto</span>
 					</div>
 					<div id="acoesCaixaHoje" style="display: flex; gap: 8px; flex-wrap: wrap;">
+						<button type="button" id="btnAbrirModalSaida" class="btn" style="background-color: #ef4444; font-size: 0.88rem; padding: 8px 14px;">
+							➖ Registrar Saída / Sangria
+						</button>
 						<button type="button" id="btnAbrirModalFecharCaixa" class="btn" style="background-color: var(--secondary); font-size: 0.88rem; padding: 8px 14px;">
 							🔒 Fechar Caixa do Dia
 						</button>
@@ -59,24 +62,24 @@
 				<!-- Métricas Principais de Hoje -->
 				<div class="dashboard-grid" style="margin-bottom: 20px;">
 					<div class="stat-card">
-						<div class="stat-icon green">💰</div>
+						<div class="stat-icon green">🟢</div>
 						<div class="stat-info">
-							<span class="stat-label">Total Arrecadado Hoje</span>
-							<span class="stat-value" id="caixaTotalHoje">R$ 0,00</span>
+							<span class="stat-label">Total Entradas</span>
+							<span class="stat-value" id="caixaTotalEntradas">R$ 0,00</span>
 						</div>
 					</div>
 					<div class="stat-card">
-						<div class="stat-icon blue">🚗</div>
+						<div class="stat-icon" style="color: #ef4444; background: rgba(239,68,68,0.1);">🔴</div>
 						<div class="stat-info">
-							<span class="stat-label">Ordens Concluídas Hoje</span>
-							<span class="stat-value" id="caixaOrdensHoje">0</span>
+							<span class="stat-label">Total Saídas / Sangria</span>
+							<span class="stat-value" id="caixaTotalSaidas" style="color: #ef4444;">R$ 0,00</span>
 						</div>
 					</div>
-					<div class="stat-card">
-						<div class="stat-icon amber">💵</div>
+					<div class="stat-card" style="border: 1px solid var(--primary); background-color: var(--primary-light);">
+						<div class="stat-icon blue">💼</div>
 						<div class="stat-info">
-							<span class="stat-label">Fundo de Troco / Abertura</span>
-							<span class="stat-value" id="caixaFundoTroco">R$ 0,00</span>
+							<span class="stat-label" style="color: var(--primary-dark); font-weight: 600;">Saldo Líquido em Caixa</span>
+							<span class="stat-value" id="caixaSaldoReal" style="color: var(--primary-dark);">R$ 0,00</span>
 						</div>
 					</div>
 				</div>
@@ -113,10 +116,10 @@
 				</div>
 			</div>
 
-			<!-- Tabela: Recebimentos de Hoje -->
+			<!-- Tabela: Movimentações de Hoje -->
 			<div class="content-card">
 				<div class="content-card-title">
-					<span>Recebimentos Concluídos Hoje</span>
+					<span>Extrato de Movimentações (Entradas e Saídas)</span>
 					<a href="pedidos.html" class="btn btn-secondary btn-sm">📋 Ver Todas as O.S.</a>
 				</div>
 				<div class="table-responsive">
@@ -124,11 +127,11 @@
 						<thead>
 							<tr>
 								<th>Horário</th>
-								<th>Veículo & Placa</th>
-								<th>Cliente</th>
-								<th>Serviços</th>
+								<th>Operação</th>
+								<th>Descrição / Detalhes</th>
 								<th>Valor</th>
-								<th>Forma Pagamento</th>
+								<th>Forma / Categoria</th>
+								<th>Ação</th>
 							</tr>
 						</thead>
 						<tbody id="corpoRecebimentosHoje">
@@ -155,6 +158,8 @@
 								<th>Hora Fechamento</th>
 								<th>Qtd. Carros</th>
 								<th>Total Arrecadado</th>
+								<th>Total Saídas</th>
+								<th>Saldo Final</th>
 								<th>Pix</th>
 								<th>Dinheiro</th>
 								<th>Cartões</th>
@@ -206,6 +211,44 @@
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary" id="modalCancelarFechamentoBtn">Voltar</button>
 						<button type="submit" class="btn" style="background-color: var(--secondary);">🔒 Confirmar e Fechar Caixa</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<!-- Modal: Registrar Saída de Caixa -->
+		<div id="modalSaidaCaixa" class="modal-overlay">
+			<div class="modal-card">
+				<div class="modal-header">
+					<h3>➖ Registrar Saída / Sangria</h3>
+					<button type="button" class="modal-close-btn" id="modalSaidaCaixaX">&times;</button>
+				</div>
+				<form id="formRegistrarSaidaCaixa">
+					<div class="modal-body">
+						<div class="form-group" style="margin-bottom: 14px;">
+							<label for="modalSaidaValorInput">Valor da Saída (R$) *</label>
+							<input type="number" id="modalSaidaValorInput" step="0.01" min="0.01" placeholder="Ex: 50.00" required />
+						</div>
+
+						<div class="form-group" style="margin-bottom: 14px;">
+							<label for="modalSaidaCategoria">Categoria *</label>
+							<select id="modalSaidaCategoria" required>
+								<option value="" disabled selected>Selecione...</option>
+								<option value="Sangria / Retirada">Sangria / Retirada (Depósito)</option>
+								<option value="Despesa Operacional">Despesa Operacional (Materiais, Limpeza)</option>
+								<option value="Adiantamento">Adiantamento / Pagamento de Funcionário</option>
+								<option value="Outro">Outro</option>
+							</select>
+						</div>
+
+						<div class="form-group">
+							<label for="modalSaidaDescricao">Descrição / Motivo *</label>
+							<textarea id="modalSaidaDescricao" placeholder="Ex: Compra de produtos de limpeza, pagamento do entregador..." required></textarea>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" id="modalCancelarSaidaBtn">Cancelar</button>
+						<button type="submit" class="btn" style="background-color: #ef4444;">Confirmar Saída</button>
 					</div>
 				</form>
 			</div>

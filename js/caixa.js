@@ -7,9 +7,9 @@ const badgeStatusCaixa = document.getElementById('badgeStatusCaixa');
 const btnAbrirModalFecharCaixa = document.getElementById('btnAbrirModalFecharCaixa');
 const btnReabrirCaixa = document.getElementById('btnReabrirCaixa');
 
-const caixaTotalHoje = document.getElementById('caixaTotalHoje');
-const caixaOrdensHoje = document.getElementById('caixaOrdensHoje');
-const caixaFundoTroco = document.getElementById('caixaFundoTroco');
+const caixaTotalEntradas = document.getElementById('caixaTotalEntradas');
+const caixaTotalSaidas = document.getElementById('caixaTotalSaidas');
+const caixaSaldoReal = document.getElementById('caixaSaldoReal');
 
 const caixaValorPix = document.getElementById('caixaValorPix');
 const caixaValorDinheiro = document.getElementById('caixaValorDinheiro');
@@ -19,6 +19,12 @@ const caixaValorPrazo = document.getElementById('caixaValorPrazo');
 
 const corpoRecebimentosHoje = document.getElementById('corpoRecebimentosHoje');
 const corpoHistoricoCaixas = document.getElementById('corpoHistoricoCaixas');
+
+const btnAbrirModalSaida = document.getElementById('btnAbrirModalSaida');
+const modalSaidaCaixa = document.getElementById('modalSaidaCaixa');
+const formRegistrarSaidaCaixa = document.getElementById('formRegistrarSaidaCaixa');
+const modalSaidaCaixaX = document.getElementById('modalSaidaCaixaX');
+const modalCancelarSaidaBtn = document.getElementById('modalCancelarSaidaBtn');
 
 // Modal de Fechamento
 const modalFecharCaixa = document.getElementById('modalFecharCaixa');
@@ -55,6 +61,7 @@ function carregarDadosCaixa() {
 			badgeStatusCaixa.textContent = '🔒 Caixa Fechado';
 		}
 		if (btnAbrirModalFecharCaixa) btnAbrirModalFecharCaixa.style.display = 'none';
+		if (btnAbrirModalSaida) btnAbrirModalSaida.style.display = 'none';
 		if (btnReabrirCaixa) btnReabrirCaixa.style.display = 'inline-flex';
 	} else {
 		if (badgeStatusCaixa) {
@@ -62,18 +69,20 @@ function carregarDadosCaixa() {
 			badgeStatusCaixa.textContent = '● Caixa Aberto';
 		}
 		if (btnAbrirModalFecharCaixa) btnAbrirModalFecharCaixa.style.display = 'inline-flex';
+		if (btnAbrirModalSaida) btnAbrirModalSaida.style.display = 'inline-flex';
 		if (btnReabrirCaixa) btnReabrirCaixa.style.display = 'none';
 	}
 
 	// Estatísticas de Hoje
-	if (caixaTotalHoje) {
-		caixaTotalHoje.textContent = `R$ ${statusHoje.totalValor.toFixed(2)}`;
+	if (caixaTotalEntradas) {
+		caixaTotalEntradas.textContent = `R$ ${(statusHoje.totalValor || 0).toFixed(2)}`;
 	}
-	if (caixaOrdensHoje) {
-		caixaOrdensHoje.textContent = statusHoje.totalServicos;
+	if (caixaTotalSaidas) {
+		caixaTotalSaidas.textContent = `R$ ${(statusHoje.totalSaidas || 0).toFixed(2)}`;
 	}
-	if (caixaFundoTroco) {
-		caixaFundoTroco.textContent = `R$ ${(statusHoje.fundoTroco || 0).toFixed(2)}`;
+	if (caixaSaldoReal) {
+        const saldoLíquido = (statusHoje.totalValor || 0) + (statusHoje.fundoTroco || 0) - (statusHoje.totalSaidas || 0);
+		caixaSaldoReal.textContent = `R$ ${saldoLíquido.toFixed(2)}`;
 	}
 
 	// Breakdown
@@ -95,50 +104,90 @@ function renderizarRecebimentosHoje(dataHoje) {
 	if (!corpoRecebimentosHoje) return;
 
 	const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+	const saidas = CaixaService.getSaidasDia(dataHoje) || [];
 	const hoje = dataHoje || obterDataHojeISO();
 
 	const pedidosHoje = pedidos.filter((p) => {
 		const dataRef = p.dataEncerramento || p.data;
 		const estaEncerrado = !p.status || p.status === 'encerrado';
 		return dataRef === hoje && estaEncerrado;
-	});
+	}).map(p => ({
+        tipo: 'entrada',
+        horario: p.horaEncerramento || p.horaEntrada || '--:--',
+        timestamp: p.dataEncerramento + 'T' + (p.horaEncerramento || p.horaEntrada || '00:00') + ':00',
+        valor: parseFloat(p.valor || 0),
+        descricao: p.servicos,
+        cliente: p.cliente,
+        forma: p.formaPagamento || 'Outro',
+        cor: p.cor,
+        modelo: p.modelo,
+        placa: p.placa,
+        id: p.id
+    }));
+
+    const saidasHoje = saidas.map(s => ({
+        tipo: 'saida',
+        horario: s.hora || '--:--',
+        timestamp: s.timestamp,
+        valor: parseFloat(s.valor || 0),
+        descricao: s.descricao,
+        cliente: '-',
+        forma: s.categoria,
+        id: s.id
+    }));
+
+    let movimentacoes = [...pedidosHoje, ...saidasHoje];
+    // sort by timestamp or horario (descending)
+    movimentacoes.sort((a, b) => a.timestamp < b.timestamp ? 1 : -1);
 
 	corpoRecebimentosHoje.innerHTML = '';
 
-	if (pedidosHoje.length === 0) {
+	if (movimentacoes.length === 0) {
 		corpoRecebimentosHoje.innerHTML = `
 			<tr>
 				<td colspan="6" class="empty-table-message">
-					Nenhum recebimento registrado hoje até o momento. As ordens de serviço encerradas com pagamento aparecerão aqui automaticamente.
+					Nenhuma movimentação registrada hoje até o momento.
 				</td>
 			</tr>
 		`;
 		return;
 	}
 
-	[...pedidosHoje].reverse().forEach((p) => {
-		const corObj = obterCorVeiculo(p.cor);
+	movimentacoes.forEach((m) => {
 		const tr = document.createElement('tr');
-		const valorFormatado = parseFloat(p.valor || 0).toFixed(2);
-		const horario = p.horaEncerramento || p.horaEntrada || '--:--';
-		const modeloTexto = p.modelo ? ` • ${p.modelo}` : '';
-
-		tr.innerHTML = `
-			<td><small style="font-weight:600; color:var(--text-muted);">${horario}</small></td>
-			<td>
-				<div class="veiculo-info-cell">
-					${renderizarIconeCarro(corObj, 26)}
-					<div class="veiculo-meta">
-						<span class="badge-placa">${p.placa || 'SEM PLACA'}</span>
-						<span class="veiculo-cor-nome">${corObj.nome}${modeloTexto}</span>
-					</div>
-				</div>
-			</td>
-			<td><strong>${p.cliente || 'Não informado'}</strong></td>
-			<td>${p.servicos || '-'}</td>
-			<td><span class="badge-price">R$ ${valorFormatado}</span></td>
-			<td><span class="badge badge-payment">${p.formaPagamento || 'Outro'}</span></td>
-		`;
+		const valorFormatado = m.valor.toFixed(2);
+		
+        if (m.tipo === 'entrada') {
+            const corObj = obterCorVeiculo(m.cor);
+            const modeloTexto = m.modelo ? ` • ${m.modelo}` : '';
+            tr.innerHTML = `
+                <td><small style="font-weight:600; color:var(--text-muted);">${m.horario}</small></td>
+                <td><span class="badge" style="background: rgba(22,163,74,0.1); color: var(--success); border-color: rgba(22,163,74,0.2);">Entrada (O.S.)</span></td>
+                <td>
+                    <div style="font-weight: 500; font-size: 0.9rem; color: var(--text-main); margin-bottom: 4px;">Cliente: ${m.cliente || 'Não informado'}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px;">Serviços: ${m.descricao || '-'}</div>
+                    <div class="veiculo-info-cell">
+                        ${renderizarIconeCarro(corObj, 22)}
+                        <div class="veiculo-meta">
+                            <span class="badge-placa" style="font-size: 0.65rem;">${m.placa || 'SEM PLACA'}</span>
+                            <span class="veiculo-cor-nome" style="font-size: 0.75rem;">${corObj.nome}${modeloTexto}</span>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="badge-price" style="color: var(--success);">+ R$ ${valorFormatado}</span></td>
+                <td><span class="badge badge-payment">${m.forma}</span></td>
+                <td><a href="pedidos.html" class="btn btn-sm btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;">Ver O.S.</a></td>
+            `;
+        } else {
+            tr.innerHTML = `
+                <td><small style="font-weight:600; color:var(--text-muted);">${m.horario}</small></td>
+                <td><span class="badge" style="background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.2);">Saída / Sangria</span></td>
+                <td><span style="font-weight: 500; font-size: 0.9rem; color: var(--text-main);">${m.descricao}</span></td>
+                <td><span class="badge-price" style="color: #ef4444; background: rgba(239,68,68,0.05);">- R$ ${valorFormatado}</span></td>
+                <td><span class="badge" style="border: 1px solid #d1d5db; color: #4b5563;">${m.forma}</span></td>
+                <td><button type="button" class="btn btn-sm" style="padding: 4px 8px; font-size: 0.75rem; background: transparent; border: 1px solid #ef4444; color: #ef4444;" onclick="removerSaidaGlobal('${m.id}')">Excluir</button></td>
+            `;
+        }
 		corpoRecebimentosHoje.appendChild(tr);
 	});
 }
@@ -163,6 +212,8 @@ function renderizarHistoricoFechamentos() {
 	fechamentos.forEach((f) => {
 		const tr = document.createElement('tr');
 		const totalArrecadado = parseFloat(f.totalValor || 0).toFixed(2);
+		const totalSaidas = parseFloat(f.totalSaidas || 0).toFixed(2);
+		const saldoFinal = (parseFloat(f.totalValor || 0) + parseFloat(f.fundoTroco || 0) - parseFloat(f.totalSaidas || 0)).toFixed(2);
 		const pix = parseFloat((f.breakdown && f.breakdown['Pix']) || 0).toFixed(2);
 		const dinheiro = parseFloat((f.breakdown && f.breakdown['Dinheiro']) || 0).toFixed(2);
 		const cartoes = (
@@ -181,13 +232,46 @@ function renderizarHistoricoFechamentos() {
 			<td>${badgeTipo}</td>
 			<td>${f.horaFechamento || '--:--'}</td>
 			<td><strong>${f.totalServicos || 0}</strong></td>
-			<td><span class="badge-price" style="font-size:0.95rem;">R$ ${totalArrecadado}</span></td>
+			<td><span class="badge-price" style="font-size:0.95rem; color: var(--success);">+ R$ ${totalArrecadado}</span></td>
+			<td><span class="badge-price" style="font-size:0.95rem; color: #ef4444; background: rgba(239,68,68,0.05);">- R$ ${totalSaidas}</span></td>
+			<td><span class="badge-price" style="font-size:0.95rem;">R$ ${saldoFinal}</span></td>
 			<td>R$ ${pix}</td>
 			<td>R$ ${dinheiro}</td>
 			<td>R$ ${cartoes}</td>
 			<td><small style="color:var(--text-muted);">${obs}</small></td>
 		`;
 		corpoHistoricoCaixas.appendChild(tr);
+	});
+}
+
+// Controle do Modal de Saída
+function abrirModalSaida() {
+	if (document.getElementById('modalSaidaValorInput')) document.getElementById('modalSaidaValorInput').value = '';
+	if (document.getElementById('modalSaidaCategoria')) document.getElementById('modalSaidaCategoria').value = '';
+	if (document.getElementById('modalSaidaDescricao')) document.getElementById('modalSaidaDescricao').value = '';
+	modalSaidaCaixa.classList.add('open');
+}
+
+function fecharModalSaida() {
+	modalSaidaCaixa.classList.remove('open');
+}
+
+if (btnAbrirModalSaida) btnAbrirModalSaida.addEventListener('click', abrirModalSaida);
+if (modalSaidaCaixaX) modalSaidaCaixaX.addEventListener('click', fecharModalSaida);
+if (modalCancelarSaidaBtn) modalCancelarSaidaBtn.addEventListener('click', fecharModalSaida);
+
+if (formRegistrarSaidaCaixa) {
+	formRegistrarSaidaCaixa.addEventListener('submit', (e) => {
+		e.preventDefault();
+		const valor = document.getElementById('modalSaidaValorInput').value;
+		const categoria = document.getElementById('modalSaidaCategoria').value;
+		const descricao = document.getElementById('modalSaidaDescricao').value;
+
+		if (!valor || !categoria || !descricao) return;
+
+		CaixaService.registrarSaida(valor, categoria, descricao);
+		fecharModalSaida();
+		carregarDadosCaixa();
 	});
 }
 
@@ -231,6 +315,13 @@ if (btnReabrirCaixa) {
 		}
 	});
 }
+
+window.removerSaidaGlobal = function(id) {
+    if(confirm('Tem certeza que deseja excluir esta saída? O saldo será recalculado.')) {
+        CaixaService.removerSaida(id);
+        carregarDadosCaixa();
+    }
+};
 
 document.addEventListener('DOMContentLoaded', () => {
 	carregarDadosCaixa();

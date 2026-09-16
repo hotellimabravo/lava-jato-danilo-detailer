@@ -87,6 +87,7 @@ class CaixaService {
 					fundoTroco: parseFloat(caixaAtual.fundoTroco || 0),
 					totalValor: resumoDiaAnterior.totalValor,
 					totalServicos: resumoDiaAnterior.totalServicos,
+					totalSaidas: resumoDiaAnterior.totalSaidas,
 					breakdown: resumoDiaAnterior.breakdown,
 					dataRegistro: new Date().toISOString()
 				};
@@ -110,9 +111,11 @@ class CaixaService {
 
 	static calcularResumoDia(dataAlvo) {
 		const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+		const saidas = JSON.parse(localStorage.getItem('caixa_saidas')) || [];
 		
 		let totalValor = 0;
 		let totalServicos = 0;
+		let totalSaidas = 0;
 		const breakdown = {
 			'Pix': 0,
 			'Dinheiro': 0,
@@ -141,7 +144,41 @@ class CaixaService {
 			}
 		});
 
-		return { totalValor, totalServicos, breakdown };
+		saidas.forEach(s => {
+			if (s.data === dataAlvo) {
+				totalSaidas += parseFloat(s.valor || 0);
+			}
+		});
+
+		return { totalValor, totalServicos, breakdown, totalSaidas };
+	}
+
+	static registrarSaida(valor, categoria, descricao) {
+		const saidas = JSON.parse(localStorage.getItem('caixa_saidas')) || [];
+		const novaSaida = {
+			id: Date.now().toString(),
+			data: obterDataHojeISO(),
+			hora: obterHoraAtual(),
+			timestamp: new Date().toISOString(),
+			valor: parseFloat(valor),
+			categoria: categoria,
+			descricao: descricao,
+			tipo: 'saida'
+		};
+		saidas.push(novaSaida);
+		localStorage.setItem('caixa_saidas', JSON.stringify(saidas));
+		return novaSaida;
+	}
+
+	static getSaidasDia(dataAlvo) {
+		const saidas = JSON.parse(localStorage.getItem('caixa_saidas')) || [];
+		return saidas.filter(s => s.data === dataAlvo);
+	}
+
+	static removerSaida(id) {
+		let saidas = JSON.parse(localStorage.getItem('caixa_saidas')) || [];
+		saidas = saidas.filter(s => s.id !== id.toString());
+		localStorage.setItem('caixa_saidas', JSON.stringify(saidas));
 	}
 
 	static getStatusHoje() {
@@ -175,6 +212,7 @@ class CaixaService {
 			fundoTroco: parseFloat(fundoTroco || 0),
 			totalValor: resumo.totalValor,
 			totalServicos: resumo.totalServicos,
+			totalSaidas: resumo.totalSaidas,
 			breakdown: resumo.breakdown,
 			dataRegistro: new Date().toISOString()
 		};
