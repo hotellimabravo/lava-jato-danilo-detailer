@@ -1,6 +1,7 @@
 import { initFirebase, db, auth, signInWithEmailAndPassword, signOut as fbSignOut, doc, getDoc, setDoc } from './firebase-init.js';
 import './firebase-sync.js';
 import './empresa-service.js';
+import './pwa-install.js';
 
 const AuthService = {
     MASTER_USER: 'admin',

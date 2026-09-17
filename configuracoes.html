@@ -5,6 +5,14 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 		<title>Configurações do Sistema | SEU NEGÓCIO</title>
 		<link rel="stylesheet" href="style.css" />
+		<link rel="manifest" href="/manifest.json" />
+		<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="theme-color" content="#0f172a" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="apple-mobile-web-app-title" content="Gestão SaaS" />
 		<script type="module" src="js/auth-service.js"></script>
 	</head>
 	<body>
@@ -286,6 +294,45 @@
 									</button>
 								</div>
 							</form>
+						</div>
+
+						<!-- Card do Aplicativo PWA -->
+						<div class="negocio-hero-card" style="margin-top: 20px; border-top: 4px solid #3b82f6;">
+							<div class="negocio-hero-top">
+								<div class="negocio-hero-title-group">
+									<h2 class="negocio-hero-title">
+										<span>📲 Aplicativo Instalável (PWA) no Celular & Computador</span>
+									</h2>
+									<p class="negocio-hero-desc">
+										Você e seus funcionários podem instalar o sistema como um <strong>aplicativo nativo</strong> no celular (Android e iPhone) ou no computador (Windows e Mac), com acesso rápido pela tela inicial e visualização em tela cheia.
+									</p>
+								</div>
+								<button type="button" class="btn btn-primary" onclick="window.PWAInstall && window.PWAInstall.solicitarInstalacao()" style="display: flex; align-items: center; gap: 6px;">
+									<span>📲</span>
+									<span>Instalar Aplicativo Agora</span>
+								</button>
+							</div>
+
+							<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 14px;">
+								<div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px;">
+									<div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-bottom: 4px;">🤖 Android & Chrome</div>
+									<div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+										Basta clicar no botão acima ou abrir o menu de três pontos do Chrome e escolher <strong>"Instalar aplicativo"</strong>.
+									</div>
+								</div>
+								<div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px;">
+									<div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-bottom: 4px;">🍎 iPhone & iPad</div>
+									<div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+										Abra no Safari, toque no ícone <strong>Compartilhar ⎋</strong> e depois em <strong>"Adicionar à Tela de Início"</strong>.
+									</div>
+								</div>
+								<div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px;">
+									<div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-bottom: 4px;">💻 PC & Notebook</div>
+									<div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+										No Chrome ou Edge, clique no ícone de tela/computador na barra de endereço para fixar na barra de tarefas.
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 
