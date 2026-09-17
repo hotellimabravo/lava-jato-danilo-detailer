@@ -1,6 +1,7 @@
-// ==========================================================================
-// Serviço de Autenticação e Autorização (Controle de Usuários)
-// ==========================================================================
+import { initFirebase, db, auth, signInWithEmailAndPassword, signOut as fbSignOut, doc, getDoc, setDoc } from './firebase-init.js';
+import './firebase-sync.js';
+import './empresa-service.js';
+
 const AuthService = {
     MASTER_USER: 'admin',
     MASTER_HASH: 'cf3ba79fe53bf2417903fbde744a088e4e0ca0ca877ee76dcd174011ce5a43dd',
@@ -44,7 +45,6 @@ const AuthService = {
         if (users.find(u => u.id !== id && u.username.toLowerCase() === username.toLowerCase())) {
             throw new Error('Nome de usuário já existe');
         }
-
         users[index].nome = nome;
         users[index].username = username;
         users[index].permissoes = permissoes;
@@ -63,27 +63,72 @@ const AuthService = {
     async login(username, password) {
         const usernameNormalized = username.trim().toLowerCase();
         const hash = await this.hashPassword(password);
-
+        
+        // 1. MASTER LOGIN (Local Hash)
         if (usernameNormalized === this.MASTER_USER.toLowerCase() && hash === this.MASTER_HASH) {
-            const masterData = { id: 'master', nome: 'Administrador Master', username: 'admin', isMaster: true };
+            const activeEmpresa = localStorage.getItem('master_active_empresaId') || 'empresa_danilo';
+            const masterData = { 
+                id: 'master', 
+                nome: 'Administrador Master', 
+                username: 'admin', 
+                isMaster: true, 
+                empresaId: activeEmpresa 
+            };
             localStorage.setItem('logged_in_user', JSON.stringify(masterData));
+            if (window.FirebaseSync) window.FirebaseSync.start();
             return true;
         }
 
+        // 2. CHECK MULTI-TENANT FIRESTORE USERS
+        try {
+            if (db) {
+                const userDoc = await getDoc(doc(db, 'users', usernameNormalized));
+                if (userDoc.exists()) {
+                    const fireData = userDoc.data();
+                    if (fireData.passwordHash === hash) {
+                        const sessionData = {
+                            id: usernameNormalized,
+                            nome: fireData.nome,
+                            username: usernameNormalized,
+                            isMaster: false,
+                            empresaId: fireData.empresaId,
+                            permissoes: fireData.permissoes || []
+                        };
+                        localStorage.setItem('logged_in_user', JSON.stringify(sessionData));
+                        if (window.FirebaseSync) window.FirebaseSync.start();
+                        return true;
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Erro ao verificar usuário na nuvem:', err);
+        }
+
+        // 3. CHECK REGULAR USERS (Stored locally)
         const users = this.getUsers();
         const user = users.find(u => u.username.toLowerCase() === usernameNormalized && u.passwordHash === hash);
         
         if (user) {
+            const currentUser = this.getCurrentUser();
+            const currentEmpresaId = (currentUser && currentUser.empresaId) ? currentUser.empresaId : 'empresa_danilo';
             const { passwordHash, ...userData } = user;
+            userData.empresaId = user.empresaId || currentEmpresaId;
             localStorage.setItem('logged_in_user', JSON.stringify(userData));
+            if (window.FirebaseSync) window.FirebaseSync.start();
             return true;
         }
 
         return false;
     },
 
-    logout() {
+    async logout() {
         localStorage.removeItem('logged_in_user');
+        if (window.FirebaseSync) window.FirebaseSync.stop();
+        try {
+            if (auth) await fbSignOut(auth);
+        } catch (e) {
+            console.error(e);
+        }
         window.location.href = 'login.html';
     },
 
@@ -104,6 +149,10 @@ const AuthService = {
         if (user && isLoginPage) {
             window.location.href = 'index.html';
             return;
+        }
+
+        if (user && !isLoginPage) {
+            if (window.FirebaseSync) window.FirebaseSync.start();
         }
 
         if (user && !user.isMaster && !isLoginPage) {
@@ -130,13 +179,11 @@ const AuthService = {
         if (path.includes('servicos.html')) currentModule = 'servicos';
         if (path.includes('configuracoes.html')) currentModule = 'configuracoes';
 
-        // Redireciona se não tiver permissão
         if (currentModule && !this.hasPermission(currentModule)) {
             alert('Seu usuário não tem permissão para acessar esta área.');
             window.location.href = 'index.html';
         }
 
-        // Esconder itens do menu
         document.addEventListener('DOMContentLoaded', () => {
             const navMap = {
                 'agenda': 'a[href="agendamentos.html"]',
@@ -159,4 +206,8 @@ const AuthService = {
     }
 };
 
+window.AuthService = AuthService;
 AuthService.checkAuth();
+
+export default AuthService;
+export { AuthService };

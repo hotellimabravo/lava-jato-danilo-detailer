@@ -1971,5 +1971,166 @@ body {
 	flex-wrap: wrap;
 }
 
+/* ==========================================================================
+   Barra Multi-Tenant Master (SaaS)
+   ========================================================================== */
+.master-tenant-bar {
+	display: inline-flex;
+	align-items: center;
+	margin-right: 12px;
+}
+
+.master-tenant-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	background: #fffbeb;
+	border: 1px solid #fde68a;
+	padding: 4px 10px;
+	border-radius: var(--radius-sm);
+	box-shadow: var(--shadow-sm);
+}
+
+.master-crown {
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: #b45309;
+	background: #fef3c7;
+	padding: 2px 6px;
+	border-radius: 4px;
+	letter-spacing: 0.5px;
+	white-space: nowrap;
+}
+
+.tenant-label {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: #92400e;
+	white-space: nowrap;
+}
+
+.master-select-tenant {
+	padding: 4px 8px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: #78350f;
+	background: #ffffff;
+	border: 1px solid #d97706;
+	border-radius: 4px;
+	cursor: pointer;
+	outline: none;
+}
+
+.master-select-tenant:focus {
+	border-color: #b45309;
+	box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
+}
+
+.btn-manage-tenants {
+	font-size: 0.78rem;
+	font-weight: 600;
+	background: #d97706;
+	color: #ffffff;
+	text-decoration: none;
+	padding: 3px 8px;
+	border-radius: 4px;
+	transition: background 0.15s ease;
+	white-space: nowrap;
+}
+
+.btn-manage-tenants:hover {
+	background: #b45309;
+}
+
+@media (max-width: 900px) {
+	.master-tenant-bar {
+		margin-right: 6px;
+	}
+	.tenant-label {
+		display: none;
+	}
+	.master-select-tenant {
+		max-width: 140px;
+	}
+}
+
+/* Estilos da Aba de Empresas SaaS */
+.tenant-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.tenant-card {
+	background: #ffffff;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-md);
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 12px;
+	box-shadow: var(--shadow-sm);
+	position: relative;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tenant-card:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-md);
+}
+
+.tenant-card.active-tenant {
+	border-color: #f59e0b;
+	background: #fffdfa;
+}
+
+.tenant-card-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.tenant-card-avatar {
+	font-size: 1.8rem;
+	width: 44px;
+	height: 44px;
+	background: var(--bg-surface);
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.tenant-card-meta {
+	flex: 1;
+}
+
+.tenant-card-title {
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--text-main);
+	line-height: 1.3;
+}
+
+.tenant-card-sub {
+	font-size: 0.8rem;
+	color: var(--text-muted);
+	margin-top: 2px;
+}
+
+.tenant-card-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-top: 10px;
+	border-top: 1px solid var(--border-color);
+	gap: 8px;
+}
+
 
 

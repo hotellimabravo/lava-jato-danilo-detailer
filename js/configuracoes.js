@@ -10,23 +10,36 @@ document.addEventListener('DOMContentLoaded', () => {
 	configurarDropzone();
 	mascararCamposNegocio();
 	inicializarGoogleDriveUI();
+
+	// Habilita aba exclusiva do Master se for administrador
+	const user = window.AuthService ? window.AuthService.getCurrentUser() : null;
+	const tabMaster = document.getElementById('tabNavEmpresasMaster');
+	if (tabMaster && user && user.isMaster) {
+		tabMaster.style.display = 'flex';
+	}
+
+	if (window.location.hash === '#empresas') {
+		alternarAbaConfig('empresas');
+	}
 });
 
-// Alternância de Abas (Negócio, Database, Usuários)
+// Alternância de Abas (Negócio, Database, Usuários, Equipe, Empresas SaaS)
 function alternarAbaConfig(aba) {
 	const tabNegocio = document.getElementById('tabNavNegocio');
 	const tabDatabase = document.getElementById('tabNavDatabase');
 	const tabUsuarios = document.getElementById('tabNavUsuarios');
 	const tabEquipe = document.getElementById('tabNavEquipe');
+	const tabEmpresas = document.getElementById('tabNavEmpresasMaster');
 
 	const conteudoNegocio = document.getElementById('abaConteudoNegocio');
 	const conteudoDatabase = document.getElementById('abaConteudoDatabase');
 	const conteudoUsuarios = document.getElementById('abaConteudoUsuarios');
 	const conteudoEquipe = document.getElementById('abaConteudoEquipe');
+	const conteudoEmpresas = document.getElementById('abaConteudoEmpresas');
 
 	// Desativa todas
-	[tabNegocio, tabDatabase, tabUsuarios, tabEquipe].forEach(t => t && t.classList.remove('active'));
-	[conteudoNegocio, conteudoDatabase, conteudoUsuarios, conteudoEquipe].forEach(c => c && (c.style.display = 'none'));
+	[tabNegocio, tabDatabase, tabUsuarios, tabEquipe, tabEmpresas].forEach(t => t && t.classList.remove('active'));
+	[conteudoNegocio, conteudoDatabase, conteudoUsuarios, conteudoEquipe, conteudoEmpresas].forEach(c => c && (c.style.display = 'none'));
 
 	if (aba === 'negocio') {
 		if (tabNegocio) tabNegocio.classList.add('active');
@@ -45,6 +58,10 @@ function alternarAbaConfig(aba) {
 		if (typeof filtrarComissoes === 'function') {
 			filtrarComissoes();
 		}
+	} else if (aba === 'empresas') {
+		if (tabEmpresas) tabEmpresas.classList.add('active');
+		if (conteudoEmpresas) conteudoEmpresas.style.display = 'block';
+		renderizarAbaEmpresasMaster();
 	}
 }
 
@@ -683,4 +700,178 @@ function exibirMensagemDrive(tipo, titulo, texto) {
 	if (tit) tit.textContent = titulo;
 	if (txt) txt.textContent = texto;
 }
+
+// ==========================================================================
+// ABA GESTÃO DE EMPRESAS (EXCLUSIVO MASTER)
+// ==========================================================================
+
+function renderizarAbaEmpresasMaster() {
+	if (!window.EmpresaService) return;
+
+	const empresas = window.EmpresaService.getEmpresas();
+	const ativa = window.EmpresaService.getEmpresaAtiva();
+
+	// Atualiza os cards de métricas
+	const statTotal = document.getElementById('statTotalEmpresas');
+	if (statTotal) statTotal.textContent = empresas.length;
+
+	const statAtiva = document.getElementById('statEmpresaAtivaNome');
+	if (statAtiva) statAtiva.textContent = `${ativa.icone || '🏢'} ${ativa.nome}`;
+
+	// Renderiza a lista de empresas
+	const grid = document.getElementById('gridEmpresasCadastradas');
+	if (!grid) return;
+
+	grid.innerHTML = '';
+
+	empresas.forEach(emp => {
+		const isAtiva = emp.id === ativa.id;
+		const card = document.createElement('div');
+		card.className = `tenant-card ${isAtiva ? 'active-tenant' : ''}`;
+
+		const badgeNicho = `<span class="badge" style="background: #f1f5f9; color: #334155; font-size: 0.75rem; text-transform: uppercase;">${emp.tipoNegocio}</span>`;
+		
+		const statusBtn = isAtiva
+			? `<span class="badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-weight: 700; padding: 5px 10px;">⭐ Empresa em Visualização</span>`
+			: `<button type="button" class="btn btn-sm btn-primary" onclick="alternarEmpresaDireto('${emp.id}')">⚡ Alternar Painel</button>`;
+
+		const deleteBtn = emp.id === 'empresa_danilo' 
+			? '' 
+			: `<button type="button" class="btn btn-sm" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 4px 8px;" title="Excluir Estabelecimento" onclick="excluirEmpresaMaster('${emp.id}')">🗑️</button>`;
+
+		card.innerHTML = `
+			<div class="tenant-card-header">
+				<div class="tenant-card-avatar">${emp.icone || '🏢'}</div>
+				<div class="tenant-card-meta">
+					<div class="tenant-card-title">${emp.nome}</div>
+					<div class="tenant-card-sub">${badgeNicho} <span style="color: #94a3b8; font-size: 0.72rem;">(${emp.id})</span></div>
+				</div>
+			</div>
+
+			<div style="font-size: 0.8rem; color: var(--text-muted); background: var(--bg-surface); padding: 8px 10px; border-radius: 4px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px;">
+				<div><strong>Responsável:</strong> ${emp.adminNome || 'Administrador'}</div>
+				<div><strong>Usuário de Login:</strong> <code style="background: #e2e8f0; padding: 1px 4px; border-radius: 3px;">${emp.adminUsername}</code></div>
+				${emp.telefone ? `<div><strong>Contato:</strong> ${emp.telefone}</div>` : ''}
+			</div>
+
+			<div class="tenant-card-footer">
+				<div style="display: flex; gap: 6px; align-items: center;">
+					${statusBtn}
+				</div>
+				<div>
+					${deleteBtn}
+				</div>
+			</div>
+		`;
+
+		grid.appendChild(card);
+	});
+}
+
+function abrirModalNovaEmpresa() {
+	const modal = document.getElementById('modalNovaEmpresa');
+	if (modal) {
+		modal.style.display = 'flex';
+		const form = document.getElementById('formNovaEmpresa');
+		if (form) form.reset();
+		selecionarSegmentoNovo('lava_jato');
+		const input = document.getElementById('novoNomeEmpresa');
+		if (input) input.focus();
+	}
+}
+
+function fecharModalNovaEmpresa() {
+	const modal = document.getElementById('modalNovaEmpresa');
+	if (modal) modal.style.display = 'none';
+}
+
+function selecionarSegmentoNovo(tipo) {
+	const input = document.getElementById('novoTipoNegocio');
+	if (input) input.value = tipo;
+
+	const cards = document.querySelectorAll('[data-segment-novo]');
+	cards.forEach(c => {
+		if (c.getAttribute('data-segment-novo') === tipo) {
+			c.classList.add('active');
+		} else {
+			c.classList.remove('active');
+		}
+	});
+}
+
+async function salvarNovaEmpresaMaster(e) {
+	e.preventDefault();
+	if (!window.EmpresaService) return;
+
+	const btn = document.getElementById('btnSalvarEmpresaSubmit');
+	const nome = document.getElementById('novoNomeEmpresa').value.trim();
+	const tipoNegocio = document.getElementById('novoTipoNegocio').value;
+	const adminNome = document.getElementById('novoAdminNome').value.trim();
+	const adminUsername = document.getElementById('novoAdminUsername').value.trim();
+	const adminPassword = document.getElementById('novoAdminPassword').value;
+	const telefone = document.getElementById('novoAdminTelefone').value.trim();
+
+	try {
+		if (btn) {
+			btn.disabled = true;
+			btn.textContent = '⏳ Criando base na nuvem...';
+		}
+
+		const nova = await window.EmpresaService.criarEmpresa({
+			nome,
+			tipoNegocio,
+			adminNome,
+			adminUsername,
+			adminPassword,
+			telefone
+		});
+
+		fecharModalNovaEmpresa();
+		renderizarAbaEmpresasMaster();
+		if (window.EmpresaService.renderMasterTenantBar) {
+			window.EmpresaService.renderMasterTenantBar();
+		}
+
+		const querAlternar = confirm(`Estabelecimento "${nova.nome}" cadastrado com sucesso na nuvem!\n\nDeseja alternar agora mesmo o painel para testar esta nova empresa?`);
+		if (querAlternar) {
+			window.EmpresaService.trocarEmpresaMaster(nova.id);
+		}
+	} catch (err) {
+		alert('Erro ao criar empresa: ' + (err.message || err));
+	} finally {
+		if (btn) {
+			btn.disabled = false;
+			btn.textContent = 'Criar Empresa e Habilitar Acesso';
+		}
+	}
+}
+
+function alternarEmpresaDireto(id) {
+	if (window.EmpresaService) {
+		window.EmpresaService.trocarEmpresaMaster(id);
+	}
+}
+
+async function excluirEmpresaMaster(id) {
+	if (!window.EmpresaService) return;
+	if (confirm('Tem certeza que deseja excluir este estabelecimento do sistema?')) {
+		try {
+			await window.EmpresaService.excluirEmpresa(id);
+			renderizarAbaEmpresasMaster();
+			if (window.EmpresaService.renderMasterTenantBar) {
+				window.EmpresaService.renderMasterTenantBar();
+			}
+		} catch (err) {
+			alert(err.message || err);
+		}
+	}
+}
+
+window.renderizarAbaEmpresasMaster = renderizarAbaEmpresasMaster;
+window.abrirModalNovaEmpresa = abrirModalNovaEmpresa;
+window.fecharModalNovaEmpresa = fecharModalNovaEmpresa;
+window.selecionarSegmentoNovo = selecionarSegmentoNovo;
+window.salvarNovaEmpresaMaster = salvarNovaEmpresaMaster;
+window.alternarEmpresaDireto = alternarEmpresaDireto;
+window.excluirEmpresaMaster = excluirEmpresaMaster;
 

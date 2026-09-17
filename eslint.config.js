@@ -1,12 +1,18 @@
 import globals from "globals";
-import pluginJs from "@eslint/js";
 
 export default [
   {
-    languageOptions: { globals: globals.browser },
+    ignores: ["js/xlsx.full.min.js", "patch_*.cjs", "test-caixa.js", "node_modules/**"]
+  },
+  {
+    languageOptions: { 
+      globals: {
+        ...globals.browser,
+        ...globals.node
+      }
+    },
     rules: {
       "no-undef": "warn"
     }
-  },
-  pluginJs.configs.recommended,
+  }
 ];

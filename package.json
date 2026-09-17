@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
+    "lint": "eslint .",
     "build": "node -e 'console.log(\"Build complete\")'"
   },
   "dependencies": {

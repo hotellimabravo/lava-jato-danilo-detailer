@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with tenant association and permissions",
+      "type": "object",
+      "properties": {
+        "nome": { "type": "string" },
+        "username": { "type": "string" },
+        "empresaId": { "type": "string" },
+        "isMaster": { "type": "boolean" },
+        "passwordHash": { "type": "string" },
+        "permissoes": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["username", "empresaId"]
+    },
+    "Empresa": {
+      "title": "Empresa",
+      "description": "Cadastros de estabelecimentos/inquilinos (tenants) no sistema",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nome": { "type": "string" },
+        "tipoNegocio": { "type": "string" },
+        "icone": { "type": "string" },
+        "adminUsername": { "type": "string" },
+        "adminNome": { "type": "string" },
+        "status": { "type": "string" },
+        "criadoEm": { "type": "string" }
+      },
+      "required": ["id", "nome", "tipoNegocio"]
+    },
+    "EmpresaDocument": {
+      "title": "EmpresaDocument",
+      "description": "Tenant synchronized document store for collections",
+      "type": "object",
+      "properties": {
+        "data": { "type": "string", "description": "Serialized JSON data of collection items" }
+      },
+      "required": ["data"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User mapping to company tenant"
+    },
+    "/empresas_lista/{empresaId}": {
+      "schema": "Empresa",
+      "description": "Lista de empresas registradas pelo Administrador Master"
+    },
+    "/empresas/{empresaId}": {
+      "schema": "Empresa",
+      "description": "Metadados da empresa"
+    },
+    "/empresas/{empresaId}/dados/{docId}": {
+      "schema": "EmpresaDocument",
+      "description": "Multi-tenant data storage per company"
+    }
+  }
+}

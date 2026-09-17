@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 	<title>Acesso ao Sistema - Lava Jato</title>
 	<link rel="stylesheet" href="style.css" />
-	<script src="js/auth-service.js"></script>
+	<script type="module" src="js/auth-service.js"></script>
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 		
@@ -162,7 +162,9 @@
 		</form>
 	</div></div>
 
-	<script>
+	<script type="module">
+		import AuthService from './js/auth-service.js';
+
 		document.getElementById('formLogin').addEventListener('submit', async (e) => {
 			e.preventDefault();
 			const user = document.getElementById('inputUser').value;

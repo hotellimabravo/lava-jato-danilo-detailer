@@ -8,6 +8,11 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
+
+app.get('/firebase-config.json', (req, res) => {
+    res.sendFile(path.join(__dirname, 'firebase-applet-config.json'));
+});
+
 // Serve static assets from root directory
 app.use(express.static(__dirname));
 

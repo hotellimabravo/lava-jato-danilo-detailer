@@ -5,7 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 		<title>Configurações do Sistema | SEU NEGÓCIO</title>
 		<link rel="stylesheet" href="style.css" />
-		<script src="js/auth-service.js"></script>
+		<script type="module" src="js/auth-service.js"></script>
 	</head>
 	<body>
 		<!-- Header -->
@@ -70,6 +70,11 @@
 					<button type="button" class="settings-nav-item" id="tabNavEquipe" onclick="alternarAbaConfig('equipe')">
 						<span class="settings-nav-icon">💼</span>
 						<span>Equipe & Comissões</span>
+					</button>
+
+					<button type="button" class="settings-nav-item" id="tabNavEmpresasMaster" onclick="alternarAbaConfig('empresas')" style="display: none; background: #fffbeb; border: 1px solid #fde68a; color: #92400e;">
+						<span class="settings-nav-icon">👑</span>
+						<span>Empresas (SaaS)</span>
 					</button>
 				</aside>
 
@@ -686,9 +691,166 @@
 							</div>
 						</div>
 					</div>
+
+					<!-- ==================================================== -->
+					<!-- ABA 5: GESTÃO MULTI-EMPRESAS (EXCLUSIVO MASTER) -->
+					<!-- ==================================================== -->
+					<div id="abaConteudoEmpresas" style="display: none;">
+						<div class="negocio-hero-card" style="border-top: 4px solid #f59e0b;">
+							<div class="negocio-hero-top">
+								<div class="negocio-hero-title-group">
+									<h2 class="negocio-hero-title">
+										<span>👑 Plataforma Multi-Empresas (Controle Master)</span>
+									</h2>
+									<p class="negocio-hero-desc">
+										Como <strong>Administrador Master (Admin)</strong>, você tem poder para criar negócios e empresas isoladas (Lava-Jato, Barbearia, etc.). Cada empresa tem seu próprio banco de dados, clientes, serviços e equipe isolados na nuvem.
+									</p>
+								</div>
+								<button type="button" class="btn btn-primary" onclick="abrirModalNovaEmpresa()" style="display: flex; align-items: center; gap: 6px;">
+									<span>➕</span>
+									<span>Cadastrar Nova Empresa</span>
+								</button>
+							</div>
+
+							<!-- Cards de Resumo -->
+							<div class="settings-grid" style="margin-top: 16px; margin-bottom: 20px;">
+								<div class="summary-card">
+									<div class="summary-card-title">Empresas Cadastradas</div>
+									<div class="summary-card-value" id="statTotalEmpresas">1</div>
+									<div class="summary-card-desc">Negócios ativos no SaaS</div>
+								</div>
+								<div class="summary-card">
+									<div class="summary-card-title">Empresa em Operação</div>
+									<div class="summary-card-value" style="font-size: 1.05rem; color: #b45309;" id="statEmpresaAtivaNome">-</div>
+									<div class="summary-card-desc">Negócio sendo visualizado agora</div>
+								</div>
+								<div class="summary-card">
+									<div class="summary-card-title">Isolamento Multi-Tenant</div>
+									<div class="summary-card-value" style="color: #16a34a; font-size: 1.05rem;">🔒 Ativo (Nuvem)</div>
+									<div class="summary-card-desc">Firestore com regras por tenant</div>
+								</div>
+							</div>
+
+							<!-- Lista de Empresas -->
+							<div style="margin-top: 20px;">
+								<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+									<h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main);">
+										Empresas e Estabelecimentos Criados
+									</h3>
+									<span style="font-size: 0.8rem; color: var(--text-muted);">
+										Clique em <strong>Alternar</strong> para mudar o painel para a empresa correspondente.
+									</span>
+								</div>
+
+								<div id="gridEmpresasCadastradas" class="tenant-grid">
+									<!-- Preenchido dinamicamente via JS -->
+								</div>
+							</div>
+						</div>
+					</div>
+
 				</div>
 			</div>
 		</main>
+
+		<!-- MODAL: CADASTRAR NOVA EMPRESA (EXCLUSIVO MASTER) -->
+		<div id="modalNovaEmpresa" class="modal-backdrop" style="display: none; align-items: center; justify-content: center;">
+			<div class="modal-dialog" style="max-width: 580px; width: 95%;">
+				<div class="modal-header">
+					<h3 class="modal-title">🏢 Cadastrar Novo Estabelecimento / Negócio</h3>
+					<button type="button" class="btn-close-modal" onclick="fecharModalNovaEmpresa()">✕</button>
+				</div>
+				<form id="formNovaEmpresa" onsubmit="salvarNovaEmpresaMaster(event)">
+					<div class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">
+						<div class="alert alert-info" style="font-size: 0.82rem; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 10px 14px; border-radius: 6px;">
+							🔒 <strong>Isolamento Garantido:</strong> O sistema criará uma base de dados exclusiva para este novo negócio no Firestore.
+						</div>
+
+						<div class="form-group">
+							<label for="novoNomeEmpresa">Nome do Negócio / Estabelecimento *</label>
+							<input type="text" id="novoNomeEmpresa" required placeholder="Ex: Barbearia Corte Nobre, Lava Jato Express..." style="width: 100%; padding: 8px 12px;" />
+						</div>
+
+						<div class="form-group">
+							<label>Segmento de Atuação *</label>
+							<div class="segment-grid" style="grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px;">
+								<div class="segment-option-card active" data-segment-novo="lava_jato" onclick="selecionarSegmentoNovo('lava_jato')">
+									<div class="segment-icon-badge">🚗</div>
+									<div class="segment-info">
+										<span class="segment-name" style="font-size: 0.85rem;">Lava Jato</span>
+										<span class="segment-subtitle" style="font-size: 0.7rem;">Automotivo</span>
+									</div>
+								</div>
+								<div class="segment-option-card" data-segment-novo="barbearia" onclick="selecionarSegmentoNovo('barbearia')">
+									<div class="segment-icon-badge">💈</div>
+									<div class="segment-info">
+										<span class="segment-name" style="font-size: 0.85rem;">Barbearia</span>
+										<span class="segment-subtitle" style="font-size: 0.7rem;">Salão & Estética</span>
+									</div>
+								</div>
+								<div class="segment-option-card" data-segment-novo="assistencia" onclick="selecionarSegmentoNovo('assistencia')">
+									<div class="segment-icon-badge">📱</div>
+									<div class="segment-info">
+										<span class="segment-name" style="font-size: 0.85rem;">Assistência</span>
+										<span class="segment-subtitle" style="font-size: 0.7rem;">Celular & TI</span>
+									</div>
+								</div>
+								<div class="segment-option-card" data-segment-novo="mecanica" onclick="selecionarSegmentoNovo('mecanica')">
+									<div class="segment-icon-badge">🔧</div>
+									<div class="segment-info">
+										<span class="segment-name" style="font-size: 0.85rem;">Oficina</span>
+										<span class="segment-subtitle" style="font-size: 0.7rem;">Mecânica</span>
+									</div>
+								</div>
+								<div class="segment-option-card" data-segment-novo="petshop" onclick="selecionarSegmentoNovo('petshop')">
+									<div class="segment-icon-badge">🐾</div>
+									<div class="segment-info">
+										<span class="segment-name" style="font-size: 0.85rem;">Pet Shop</span>
+										<span class="segment-subtitle" style="font-size: 0.7rem;">Banho & Tosa</span>
+									</div>
+								</div>
+								<div class="segment-option-card" data-segment-novo="geral" onclick="selecionarSegmentoNovo('geral')">
+									<div class="segment-icon-badge">🛠️</div>
+									<div class="segment-info">
+										<span class="segment-name" style="font-size: 0.85rem;">Outro</span>
+										<span class="segment-subtitle" style="font-size: 0.7rem;">Personalizado</span>
+									</div>
+								</div>
+							</div>
+							<input type="hidden" id="novoTipoNegocio" value="lava_jato" />
+						</div>
+
+						<div style="background: var(--bg-surface); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px;">
+							<span style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">👤 Administrador Deste Estabelecimento</span>
+							<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+								<div>
+									<label for="novoAdminNome" style="font-size: 0.8rem;">Nome do Responsável *</label>
+									<input type="text" id="novoAdminNome" required placeholder="Ex: Carlos Oliveira" style="width: 100%; padding: 6px 10px; font-size: 0.85rem;" />
+								</div>
+								<div>
+									<label for="novoAdminTelefone" style="font-size: 0.8rem;">WhatsApp / Telefone</label>
+									<input type="tel" id="novoAdminTelefone" placeholder="(00) 00000-0000" style="width: 100%; padding: 6px 10px; font-size: 0.85rem;" />
+								</div>
+							</div>
+							<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+								<div>
+									<label for="novoAdminUsername" style="font-size: 0.8rem;">Usuário de Acesso (Login) *</label>
+									<input type="text" id="novoAdminUsername" required placeholder="Ex: carlos_barber" style="width: 100%; padding: 6px 10px; font-size: 0.85rem;" />
+								</div>
+								<div>
+									<label for="novoAdminPassword" style="font-size: 0.8rem;">Senha Inicial *</label>
+									<input type="password" id="novoAdminPassword" required minlength="4" placeholder="Mínimo 4 caracteres" style="width: 100%; padding: 6px 10px; font-size: 0.85rem;" />
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px;">
+						<button type="button" class="btn btn-secondary" onclick="fecharModalNovaEmpresa()">Cancelar</button>
+						<button type="submit" class="btn btn-primary" id="btnSalvarEmpresaSubmit">Criar Empresa e Habilitar Acesso</button>
+					</div>
+				</form>
+			</div>
+		</div>
 
 		<!-- Scripts -->
 		<script src="https://accounts.google.com/gsi/client" async defer></script>
