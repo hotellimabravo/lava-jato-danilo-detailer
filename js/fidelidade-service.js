@@ -13,8 +13,9 @@ const FidelidadeService = {
 		return {
 			ativo: true,
 			metaSelos: 10,
-			premioDescricao: '1 Lavagem Simples Grátis ou R$ 40 de desconto',
-			diasSugeridosRetorno: 25
+			premioDescricao: 'Brinde Especial',
+			diasSugeridosRetorno: 25,
+			servicoQualificado: ''
 		};
 	},
 
@@ -34,7 +35,15 @@ const FidelidadeService = {
 
 		const pedidosDoCliente = pedidos.filter(p => {
 			const nome = (p.cliente || '').toLowerCase();
-			return p.status === 'encerrado' && (nome === termo || nome.includes(termo));
+			const statusOk = p.status === 'encerrado';
+			const clienteOk = (nome === termo || nome.includes(termo));
+			let servicoOk = true;
+			if (cfg.servicoQualificado && cfg.servicoQualificado.trim() !== '') {
+			    const servs = (p.servicos || '').toLowerCase();
+			    const svcQual = cfg.servicoQualificado.toLowerCase().trim();
+			    servicoOk = servs.includes(svcQual);
+			}
+			return statusOk && clienteOk && servicoOk;
 		});
 
 		const total = pedidosDoCliente.length;

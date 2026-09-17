@@ -6,6 +6,7 @@
 		<title>Agendamentos & Google Calendar - Lava Jato</title>
 		<link rel="stylesheet" href="style.css" />
 		<script src="https://accounts.google.com/gsi/client" async defer></script>
+		<script src="js/auth-service.js"></script>
 	</head>
 	<body>
 		<!-- Header -->
@@ -32,6 +33,9 @@
 					<a href="configuracoes.html" class="btn-settings-gear" title="Configurações e Banco de Dados" id="btnConfiguracoes">
 						⚙️
 					</a>
+					<button type="button" class="btn-settings-gear" title="Bloquear Sistema (Sair)" onclick="AuthService.logout()" style="background: transparent; border: none; cursor: pointer; color: inherit;">
+						🔒
+					</button>
 				</div>
 			</div>
 		</header>

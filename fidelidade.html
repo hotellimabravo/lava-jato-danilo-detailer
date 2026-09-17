@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 		<title>Pós-Venda & Fidelidade - Lava Jato</title>
 		<link rel="stylesheet" href="style.css" />
+		<script src="js/auth-service.js"></script>
 	</head>
 	<body>
 		<!-- Header -->
@@ -31,6 +32,9 @@
 					<a href="configuracoes.html" class="btn-settings-gear" title="Configurações e Banco de Dados" id="btnConfiguracoes">
 						⚙️
 					</a>
+					<button type="button" class="btn-settings-gear" title="Bloquear Sistema (Sair)" onclick="AuthService.logout()" style="background: transparent; border: none; cursor: pointer; color: inherit;">
+						🔒
+					</button>
 				</div>
 			</div>
 		</header>
@@ -55,7 +59,33 @@
 					<div class="stat-icon green">🎁</div>
 					<div class="stat-info">
 						<span class="stat-label">Regra do Cartão Fidelidade</span>
-						<span class="stat-value" style="font-size:1.25rem;">10 Lavagens = 1 Grátis</span>
+						<span class="stat-value" id="statRegraFidelidade" style="font-size:1.15rem; line-height: 1.2; margin-top: 4px;">10 serviços = 1 Brinde</span>
+					</div>
+				</div>
+			</div>
+
+
+			<!-- Configurações da Fidelidade -->
+			<div class="content-card" style="margin-bottom: 24px;">
+				<div class="content-card-title" style="display: flex; justify-content: space-between; align-items: center;">
+					<span>⚙️ Configurar Regras de Fidelidade</span>
+					<button type="button" class="btn btn-sm btn-primary" onclick="salvarConfigFidelidade()">Salvar Regras</button>
+				</div>
+				<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; padding-top: 8px;">
+					<div class="form-group" style="margin-bottom: 0;">
+						<label for="cfgMetaSelos" style="font-size: 0.85rem;">A cada quantos serviços?</label>
+						<input type="number" id="cfgMetaSelos" min="1" value="10" style="padding: 6px 10px; font-size: 0.9rem;" />
+					</div>
+					<div class="form-group" style="margin-bottom: 0;">
+						<label for="cfgServicoQualificado" style="font-size: 0.85rem;">Serviço Participante (Promoção)</label>
+						<select id="cfgServicoQualificado" style="padding: 6px 10px; font-size: 0.9rem;">
+							<option value="">Todos os Serviços</option>
+							<!-- Options injetadas via JS -->
+						</select>
+					</div>
+					<div class="form-group" style="margin-bottom: 0;">
+						<label for="cfgPremioDescricao" style="font-size: 0.85rem;">Ganha qual BRINDE?</label>
+						<input type="text" id="cfgPremioDescricao" placeholder="Ex: 1 Brinde Especial, 1 Lavagem..." style="padding: 6px 10px; font-size: 0.9rem;" />
 					</div>
 				</div>
 			</div>
@@ -89,7 +119,43 @@
 		<script src="js/caixa-service.js"></script>
 		<script src="js/fidelidade-service.js"></script>
 		<script>
+
+			function carregarConfigFidelidadeUI() {
+				const cfg = FidelidadeService.getConfig();
+				document.getElementById('cfgMetaSelos').value = cfg.metaSelos || 10;
+				document.getElementById('cfgPremioDescricao').value = cfg.premioDescricao || '';
+				
+				// Carregar lista de serviços disponíveis
+				const servicos = JSON.parse(localStorage.getItem('servicos')) || [];
+				const sel = document.getElementById('cfgServicoQualificado');
+				sel.innerHTML = '<option value="">Todos os Serviços</option>';
+				servicos.forEach(s => {
+					const opt = document.createElement('option');
+					opt.value = s.nome;
+					opt.textContent = s.nome;
+					if (cfg.servicoQualificado === s.nome) opt.selected = true;
+					sel.appendChild(opt);
+				});
+
+				// Atualiza o texto do stat card superior
+				const servTexto = cfg.servicoQualificado ? cfg.servicoQualificado : 'serviços';
+				document.getElementById('statRegraFidelidade').textContent = `${cfg.metaSelos} ${servTexto} = ${cfg.premioDescricao}`;
+			}
+
+			window.salvarConfigFidelidade = function() {
+				const cfg = FidelidadeService.getConfig();
+				cfg.metaSelos = parseInt(document.getElementById('cfgMetaSelos').value) || 10;
+				cfg.servicoQualificado = document.getElementById('cfgServicoQualificado').value;
+				cfg.premioDescricao = document.getElementById('cfgPremioDescricao').value || 'Brinde';
+				
+				FidelidadeService.salvarConfig(cfg);
+				carregarConfigFidelidadeUI();
+				carregarPainelFidelidade(); // recarrega a tabela de progresso com a nova regra
+				alert('Regras de fidelidade atualizadas com sucesso!');
+			};
+
 			function carregarPainelFidelidade() {
+				const cfg = FidelidadeService.getConfig();
 				const listaReativar = FidelidadeService.getClientesParaReativar();
 				const corpo = document.getElementById('corpoTabelaReativacao');
 				document.getElementById('statClientesRetorno').textContent = listaReativar.length;
@@ -110,7 +176,7 @@
 						`Olá ${c.nome}! Tudo bem? 😊\n\n` +
 						`Notamos que já faz ${item.diasSemVisita} dias desde a última visita do seu ${ult.modelo || 'veículo'} (${ult.placa || ''}) no Danilo Detailer.\n\n` +
 						`Que tal renovar o brilho e a proteção da pintura esta semana?\n` +
-						`🎁 Seu saldo de fidelidade: ${prog.selosAtuais}/${prog.metaSelos} selos acumulados!\n\n` +
+						`🎁 Seu saldo de fidelidade: ${prog.selosAtuais}/${prog.metaSelos} selos acumulados (Premiação: ${cfg.premioDescricao})!\n\n` +
 						`Podemos reservar um horário para você?`
 					);
 					const linkWhats = telLimpo ? `https://wa.me/55${telLimpo}?text=${msgWhats}` : '#';
@@ -126,7 +192,7 @@
 						<td><span class="badge" style="background:#fee2e2; color:#b91c1c; font-weight:700;">Há ${item.diasSemVisita} dias</span></td>
 						<td>
 							<div style="font-weight:700; color:#1e40af; font-size:0.9rem;">⭐ ${prog.selosAtuais} de ${prog.metaSelos} selos</div>
-							<small style="color:var(--text-muted);">${prog.totalLavagens} lavagens no total</small>
+							<small style="color:var(--text-muted);">${prog.totalLavagens} ${cfg.servicoQualificado ? cfg.servicoQualificado : 'serviços'} no total</small>
 						</td>
 						<td style="text-align:center;">
 							${telLimpo ? `
@@ -140,7 +206,10 @@
 				});
 			}
 
-			document.addEventListener('DOMContentLoaded', carregarPainelFidelidade);
+			document.addEventListener('DOMContentLoaded', () => {
+				carregarConfigFidelidadeUI();
+				carregarPainelFidelidade();
+			});
 		</script>
 	</body>
 </html>

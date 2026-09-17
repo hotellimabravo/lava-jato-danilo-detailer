@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 		<title>Configurações do Sistema | SEU NEGÓCIO</title>
 		<link rel="stylesheet" href="style.css" />
+		<script src="js/auth-service.js"></script>
 	</head>
 	<body>
 		<!-- Header -->
@@ -31,6 +32,9 @@
 					<a href="configuracoes.html" class="btn-settings-gear active" title="Configurações do Sistema" id="btnHeaderConfig">
 						⚙️
 					</a>
+					<button type="button" class="btn-settings-gear" title="Bloquear Sistema (Sair)" onclick="AuthService.logout()" style="background: transparent; border: none; cursor: pointer; color: inherit;">
+						🔒
+					</button>
 				</div>
 			</div>
 		</header>
@@ -60,7 +64,7 @@
 					<button type="button" class="settings-nav-item" id="tabNavUsuarios" onclick="alternarAbaConfig('usuarios')">
 						<span class="settings-nav-icon">👥</span>
 						<span>Usuários</span>
-						<span class="badge badge-warning" style="margin-left: auto; font-size: 0.65rem; padding: 2px 6px;">Em breve</span>
+						
 					</button>
 
 					<button type="button" class="settings-nav-item" id="tabNavEquipe" onclick="alternarAbaConfig('equipe')">
@@ -501,32 +505,93 @@
 					<!-- ==================================================== -->
 					<!-- ABA 2: USUÁRIOS DO SISTEMA (PLACEHOLDER SOLICITADO) -->
 					<!-- ==================================================== -->
+					
 					<div id="abaConteudoUsuarios" style="display: none;">
 						<div class="settings-section-card">
 							<div class="settings-section-header">
 								<h2 class="settings-section-title">
-									<span>👥 Usuários e Permissões do Sistema</span>
+									<span>👥 Controle de Acesso e Usuários</span>
 								</h2>
-								<span class="badge badge-warning">Em Planejamento</span>
+							</div>
+							
+							<!-- Form Cadastro/Edição de Usuário -->
+							<div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px;">
+								<h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+									<span id="tituloFormUser">➕ Adicionar Novo Usuário</span>
+								</h3>
+								<form id="formUsuario" class="form">
+									<input type="hidden" id="userId" />
+									<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end;">
+										<div class="form-group" style="margin-bottom: 0;">
+											<label for="userNome" style="font-size: 0.85rem;">Nome Completo *</label>
+											<input type="text" id="userNome" required placeholder="Ex: João Silva" style="padding: 6px 10px; font-size: 0.9rem;" />
+										</div>
+										<div class="form-group" style="margin-bottom: 0;">
+											<label for="userUsername" style="font-size: 0.85rem;">Nome de Usuário (Login) *</label>
+											<input type="text" id="userUsername" required placeholder="Ex: joao" style="padding: 6px 10px; font-size: 0.9rem;" />
+										</div>
+										<div class="form-group" style="margin-bottom: 0;">
+											<label for="userPassword" style="font-size: 0.85rem;">Senha <span id="labelSenhaDica"></span></label>
+											<input type="password" id="userPassword" placeholder="***" style="padding: 6px 10px; font-size: 0.9rem;" />
+										</div>
+									</div>
+
+									<div style="margin-top: 16px; border-top: 1px dashed var(--border-color); padding-top: 12px;">
+										<label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 8px;">Permissões de Acesso (Marque o que ele pode acessar):</label>
+										<div style="display: flex; flex-wrap: wrap; gap: 12px;">
+											<label style="font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+												<input type="checkbox" name="permissoes" value="agenda" checked> Agenda
+											</label>
+											<label style="font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+												<input type="checkbox" name="permissoes" value="pedidos" checked> Pedidos (O.S.)
+											</label>
+											<label style="font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+												<input type="checkbox" name="permissoes" value="caixa"> Caixa
+											</label>
+											<label style="font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+												<input type="checkbox" name="permissoes" value="estoque"> Estoque
+											</label>
+											<label style="font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+												<input type="checkbox" name="permissoes" value="posvenda"> Pós-Venda
+											</label>
+											<label style="font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+												<input type="checkbox" name="permissoes" value="clientes" checked> Clientes
+											</label>
+											<label style="font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+												<input type="checkbox" name="permissoes" value="servicos"> Serviços
+											</label>
+											<label style="font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+												<input type="checkbox" name="permissoes" value="configuracoes"> Configurações
+											</label>
+										</div>
+									</div>
+
+									<div style="display: flex; gap: 8px; margin-top: 16px;">
+										<button type="submit" class="btn btn-primary" style="flex: 1;">💾 Salvar Usuário</button>
+										<button type="button" class="btn btn-secondary" id="btnCancelarEdicaoUser" style="display: none;" onclick="limparFormUsuario()">Cancelar</button>
+									</div>
+								</form>
 							</div>
 
-							<div style="text-align: center; padding: 40px 20px;">
-								<div style="font-size: 3rem; margin-bottom: 12px;">👤⚙️</div>
-								<h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">
-									Módulo de Controle de Usuários
-								</h3>
-								<p style="font-size: 0.9rem; color: var(--text-muted); max-width: 500px; margin: 0 auto 20px auto; line-height: 1.6;">
-									Esta seção reservada receberá o gerenciamento de operadores, caixas e administradores do lava jato com níveis de acesso individuais. A estrutura está reservada e pronta para ativação na próxima fase do projeto.
-								</p>
-								<div style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-surface); padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-muted);">
-									<span>ℹ️ No momento o acesso ao sistema é unificado para o pátio e recepção.</span>
-								</div>
+							<!-- Lista de Usuários -->
+							<div class="table-responsive" style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); overflow-x: auto;">
+								<table class="tabela" style="width: 100%; font-size: 0.85rem;">
+									<thead>
+										<tr>
+											<th>Nome</th>
+											<th>Usuário</th>
+											<th>Acessos Permitidos</th>
+											<th style="text-align:center;">Ações</th>
+										</tr>
+									</thead>
+									<tbody id="corpoTabelaUsuarios">
+										<!-- Preenchido via JS -->
+									</tbody>
+								</table>
 							</div>
 						</div>
 					</div>
-
-				
-					<!-- ==================================================== -->
+<!-- ==================================================== -->
 					<!-- ABA: EQUIPE & COMISSÕES -->
 					<!-- ==================================================== -->
 					<div id="abaConteudoEquipe" style="display: none;">
@@ -679,6 +744,114 @@
 			};
 			
 			// Setup only once when DOM loads
+
+			// ==========================================
+			// Lógica de Usuários
+			// ==========================================
+			function renderizarUsuarios() {
+				const users = AuthService.getUsers();
+				const corpo = document.getElementById('corpoTabelaUsuarios');
+				if (!corpo) return;
+
+				corpo.innerHTML = '';
+				
+				// Add Master explicitly so it can be seen
+				corpo.innerHTML += `
+					<tr>
+						<td><strong>Administrador Master</strong></td>
+						<td>admin</td>
+						<td><span class="badge" style="background:#1e40af; color:#fff;">Acesso Total</span></td>
+						<td style="text-align:center;">-</td>
+					</tr>
+				`;
+
+				users.forEach(u => {
+					const count = u.permissoes ? u.permissoes.length : 0;
+					const btnEdit = `<button type="button" class="btn btn-sm" style="background:transparent; border:1px solid #3b82f6; color:#3b82f6; padding:3px 8px; margin-right:4px;" onclick="editarUsuario('${u.id}')">✏️</button>`;
+					const btnDel = `<button type="button" class="btn btn-sm" style="background:transparent; border:1px solid #ef4444; color:#ef4444; padding:3px 8px;" onclick="removerUsuario('${u.id}')">🗑️</button>`;
+					
+					corpo.innerHTML += `
+						<tr>
+							<td><strong>${u.nome}</strong></td>
+							<td>${u.username}</td>
+							<td>${count} módulos permitidos</td>
+							<td style="text-align:center; white-space:nowrap;">${btnEdit} ${btnDel}</td>
+						</tr>
+					`;
+				});
+			}
+
+			function limparFormUsuario() {
+				document.getElementById('formUsuario').reset();
+				document.getElementById('userId').value = '';
+				document.getElementById('tituloFormUser').textContent = '➕ Adicionar Novo Usuário';
+				document.getElementById('userPassword').required = true;
+				document.getElementById('labelSenhaDica').textContent = '*';
+				document.getElementById('btnCancelarEdicaoUser').style.display = 'none';
+			}
+
+			window.editarUsuario = function(id) {
+				const users = AuthService.getUsers();
+				const user = users.find(u => u.id === id);
+				if (!user) return;
+
+				document.getElementById('userId').value = user.id;
+				document.getElementById('userNome').value = user.nome;
+				document.getElementById('userUsername').value = user.username;
+				document.getElementById('userPassword').value = '';
+				document.getElementById('userPassword').required = false;
+				document.getElementById('labelSenhaDica').textContent = '(Deixe em branco para não alterar)';
+				
+				document.getElementById('tituloFormUser').textContent = '✏️ Editar Usuário';
+				document.getElementById('btnCancelarEdicaoUser').style.display = 'inline-block';
+
+				const checkboxes = document.querySelectorAll('input[name="permissoes"]');
+				checkboxes.forEach(cb => {
+					cb.checked = user.permissoes && user.permissoes.includes(cb.value);
+				});
+				
+				alternarAbaConfig('usuarios');
+			};
+
+			window.removerUsuario = function(id) {
+				if (confirm('Tem certeza que deseja remover este usuário?')) {
+					AuthService.removerUser(id);
+					renderizarUsuarios();
+				}
+			};
+
+			document.addEventListener('DOMContentLoaded', () => {
+				const formUser = document.getElementById('formUsuario');
+				if (formUser) {
+					formUser.addEventListener('submit', async (e) => {
+						e.preventDefault();
+						const id = document.getElementById('userId').value;
+						const nome = document.getElementById('userNome').value.trim();
+						const username = document.getElementById('userUsername').value.trim();
+						const pass = document.getElementById('userPassword').value;
+						
+						const checkboxes = document.querySelectorAll('input[name="permissoes"]:checked');
+						const permissoes = Array.from(checkboxes).map(cb => cb.value);
+
+						try {
+							if (id) {
+								await AuthService.updateUser(id, nome, username, pass, permissoes);
+								alert('Usuário atualizado com sucesso!');
+							} else {
+								await AuthService.addUser(nome, username, pass, permissoes);
+								alert('Usuário cadastrado com sucesso!');
+							}
+							limparFormUsuario();
+							renderizarUsuarios();
+						} catch (err) {
+							alert(err.message);
+						}
+					});
+				}
+				
+				renderizarUsuarios();
+			});
+
 			document.addEventListener('DOMContentLoaded', () => {
 				const formMembro = document.getElementById('formNovoMembro');
 				if (formMembro) {
