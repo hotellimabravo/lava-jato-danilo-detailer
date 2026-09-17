@@ -17,14 +17,16 @@ function alternarAbaConfig(aba) {
 	const tabNegocio = document.getElementById('tabNavNegocio');
 	const tabDatabase = document.getElementById('tabNavDatabase');
 	const tabUsuarios = document.getElementById('tabNavUsuarios');
+	const tabEquipe = document.getElementById('tabNavEquipe');
 
 	const conteudoNegocio = document.getElementById('abaConteudoNegocio');
 	const conteudoDatabase = document.getElementById('abaConteudoDatabase');
 	const conteudoUsuarios = document.getElementById('abaConteudoUsuarios');
+	const conteudoEquipe = document.getElementById('abaConteudoEquipe');
 
 	// Desativa todas
-	[tabNegocio, tabDatabase, tabUsuarios].forEach(t => t && t.classList.remove('active'));
-	[conteudoNegocio, conteudoDatabase, conteudoUsuarios].forEach(c => c && (c.style.display = 'none'));
+	[tabNegocio, tabDatabase, tabUsuarios, tabEquipe].forEach(t => t && t.classList.remove('active'));
+	[conteudoNegocio, conteudoDatabase, conteudoUsuarios, conteudoEquipe].forEach(c => c && (c.style.display = 'none'));
 
 	if (aba === 'negocio') {
 		if (tabNegocio) tabNegocio.classList.add('active');
@@ -37,6 +39,12 @@ function alternarAbaConfig(aba) {
 	} else if (aba === 'usuarios') {
 		if (tabUsuarios) tabUsuarios.classList.add('active');
 		if (conteudoUsuarios) conteudoUsuarios.style.display = 'block';
+	} else if (aba === 'equipe') {
+		if (tabEquipe) tabEquipe.classList.add('active');
+		if (conteudoEquipe) conteudoEquipe.style.display = 'block';
+		if (typeof filtrarComissoes === 'function') {
+			filtrarComissoes();
+		}
 	}
 }
 

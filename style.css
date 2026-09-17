@@ -65,8 +65,7 @@ body {
    ========================================================================== */
 .site-header {
 	background: #ffffff;
-	border-bottom: 1px solid var(--border-color);
-	box-shadow: var(--shadow-sm);
+	box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 	position: sticky;
 	top: 0;
 	z-index: 100;
@@ -75,20 +74,22 @@ body {
 .header-inner {
 	max-width: 1120px;
 	margin: 0 auto;
-	padding: 12px 16px;
+	padding: 12px 16px 0;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	flex-wrap: wrap;
-	gap: 12px;
 }
 
 .brand-wrapper {
+	order: 1;
+	flex: 1;
 	display: flex;
 	align-items: center;
 	gap: 10px;
 	text-decoration: none;
 	color: var(--text-main);
+	margin-bottom: 12px;
 }
 
 .brand-logo {
@@ -119,55 +120,65 @@ body {
 	color: var(--text-muted);
 }
 
-.navbar {
+.header-actions {
+	order: 2;
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	background: transparent;
-	padding: 0;
-	position: static;
-	overflow-x: auto;
-	-webkit-overflow-scrolling: touch;
-	max-width: 100%;
+	gap: 8px;
+	margin-bottom: 12px;
 }
 
-.navbar::-webkit-scrollbar {
-	display: none;
+.navbar {
+	order: 3;
+	width: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px; /* Smooth gap between blocks */
+	background: transparent;
+	padding: 8px 4px 16px 4px;
+	border-bottom: 1px solid var(--border-color); /* Subtle divider, no heavy line */
 }
 
 .navbar a {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	padding: 8px 14px;
+	padding: 8px 16px;
 	font-size: 0.9rem;
-	font-weight: 600;
+	font-weight: 500; /* Modern typography weight */
 	color: var(--secondary);
 	text-decoration: none;
-	border-radius: var(--radius-sm);
-	transition: all 0.2s ease;
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: 10px; /* Modern Soft Blocks */
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 	white-space: nowrap;
-	min-height: 40px;
+}
+
+.navbar a .nav-text {
+	max-width: initial;
+	opacity: 1;
+	overflow: visible;
 }
 
 .navbar a:hover {
 	color: var(--primary);
-	background-color: var(--primary-light);
+	background: var(--bg-surface);
+	border-color: var(--border-color);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .navbar a.active {
-	color: var(--primary);
-	background-color: var(--primary-light);
-	font-weight: 700;
+	color: #ffffff;
+	background-color: var(--primary);
+	border-color: var(--primary);
+	font-weight: 600;
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); /* Floating elevation glow effect */
 }
 
 /* Botão de Configurações (Estilo Engrenagem) */
-.header-actions {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
 .btn-settings-gear {
 	display: inline-flex;
 	align-items: center;
@@ -1209,24 +1220,17 @@ body {
    ========================================================================== */
 @media (max-width: 768px) {
 	.header-inner {
-		padding: 10px 14px;
-		flex-direction: column;
-		align-items: stretch;
-		gap: 10px;
-	}
-	
-	.brand-wrapper {
-		justify-content: flex-start;
+		padding: 10px 14px 0;
 	}
 	
 	.navbar {
 		justify-content: flex-start;
-		gap: 4px;
-		padding-bottom: 4px;
+		gap: 6px;
+		padding-bottom: 12px;
 	}
 	
 	.navbar a {
-		padding: 8px 12px;
+		padding: 6px 14px;
 		font-size: 0.85rem;
 	}
 

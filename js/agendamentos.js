@@ -32,6 +32,13 @@ const reagendarData = document.getElementById('reagendarData');
 const reagendarHora = document.getElementById('reagendarHora');
 let agendamentoSelecionado = null;
 
+// Utilitário
+function formatarDataBR(dataISO) {
+	if (!dataISO) return '';
+	const [ano, mes, dia] = dataISO.split('-');
+	return `${dia}/${mes}/${ano}`;
+}
+
 // Normalização inicial do armazenamento
 function obterAgendamentos() {
 	return JSON.parse(localStorage.getItem('agendamentos')) || [];
