@@ -25,9 +25,17 @@ const pedidoCor = document.getElementById('pedidoCor');
 const previewCorContainer = document.getElementById('previewCorContainer');
 const pedidoModelo = document.getElementById('pedidoModelo');
 const pedidoData = document.getElementById('pedidoData');
+const pedidoOperador = document.getElementById('pedidoOperador');
 const pedidoServico = document.getElementById('pedidoServico');
 const pedidoValor = document.getElementById('pedidoValor');
 const sugestoesDiv = document.getElementById('sugestoesClientes');
+
+// Vistoria Checkboxes
+const vistoriaPertences = document.getElementById('vistoriaPertences');
+const vistoriaAvarias = document.getElementById('vistoriaAvarias');
+const vistoriaVidros = document.getElementById('vistoriaVidros');
+const vistoriaEstepe = document.getElementById('vistoriaEstepe');
+const vistoriaObs = document.getElementById('vistoriaObs');
 
 // Abas e visualizações
 const tabPatioBtn = document.getElementById('tabPatioBtn');
@@ -264,6 +272,18 @@ function renderizarTabelas() {
 			const valorFormatado = parseFloat(p.valor || 0).toFixed(2);
 			const modeloTexto = p.modelo ? ` • ${p.modelo}` : '';
 
+			const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+			const cliObj = clientes.find(c => c.nome && c.nome.toLowerCase() === (p.cliente || '').toLowerCase());
+			const telLimpo = cliObj && cliObj.tel1 ? cliObj.tel1.replace(/\D/g, '') : '';
+			const msgWhats = encodeURIComponent(
+				`Olá ${p.cliente}! 🚗✨\n\n` +
+				`Seu veículo ${p.modelo || ''} (${p.placa}) já foi finalizado e está pronto para retirada no Danilo Detailer!\n\n` +
+				`Serviços realizados: ${p.servicos}\n` +
+				`Valor total: R$ ${valorFormatado}\n\n` +
+				`Aguardamos você!`
+			);
+			const linkWhatsPronto = telLimpo ? `https://wa.me/55${telLimpo}?text=${msgWhats}` : '';
+
 			tr.innerHTML = `
 				<td>
 					<div class="veiculo-info-cell">
@@ -276,6 +296,7 @@ function renderizarTabelas() {
 				</td>
 				<td>
 					<strong>${p.cliente || 'Não identificado'}</strong>
+					${p.operadorNome ? `<small style="display:block; color:var(--text-muted);">👤 Resp: ${p.operadorNome}</small>` : ''}
 				</td>
 				<td>
 					<div>${p.data || '-'}</div>
@@ -287,9 +308,14 @@ function renderizarTabelas() {
 					<div><span class="badge badge-status badge-status-aberto">Em Andamento</span></div>
 				</td>
 				<td style="text-align: center;">
-					<div class="btn-action-group">
+					<div class="btn-action-group" style="flex-wrap:wrap; justify-content:center;">
+						${linkWhatsPronto ? `
+							<a href="${linkWhatsPronto}" target="_blank" class="btn btn-sm" style="background:#16a34a; color:#fff;" title="Avisar cliente no WhatsApp que o carro está pronto">
+								💬 Carro Pronto
+							</a>
+						` : ''}
 						<button type="button" class="btn btn-sm btn-receber-os" data-id="${p.id}" style="background-color: var(--success); color: #fff;">
-							💰 Receber & Encerrar
+							💰 Receber
 						</button>
 						<button type="button" class="btn btn-sm btn-secondary btn-cancelar-os" data-id="${p.id}" style="color: var(--danger);" title="Remover O.S.">
 							🗑️
@@ -533,6 +559,18 @@ if (modalReciboBaixarBtn) {
 	});
 }
 
+function popularSelectOperadores() {
+	if (!pedidoOperador || typeof EquipeService === 'undefined') return;
+	const membros = EquipeService.getMembros();
+	pedidoOperador.innerHTML = '<option value="">Selecione quem executará o serviço...</option>';
+	membros.forEach((m) => {
+		const opt = document.createElement('option');
+		opt.value = m.id;
+		opt.textContent = `${m.nome} (${m.cargo || 'Lavador'})`;
+		pedidoOperador.appendChild(opt);
+	});
+}
+
 // Formulário de Entrada do Veículo (Abrir O.S.)
 if (pedidoForm) {
 	pedidoForm.addEventListener('submit', (e) => {
@@ -545,6 +583,13 @@ if (pedidoForm) {
 		const valor = parseFloat(pedidoValor.value) || 0;
 		let data = pedidoData.value;
 		if (!data) data = obterDataHojeISO();
+
+		const operadorId = pedidoOperador ? pedidoOperador.value : '';
+		let operadorNome = '';
+		if (operadorId && typeof EquipeService !== 'undefined') {
+			const m = EquipeService.getMembros().find(x => x.id === operadorId);
+			if (m) operadorNome = m.nome;
+		}
 
 		const servicosSelecionados = Array.from(pedidoServico.selectedOptions)
 			.filter((o) => !o.disabled)
@@ -570,13 +615,28 @@ if (pedidoForm) {
 			localStorage.setItem('clientes', JSON.stringify(clientes));
 		}
 
+		const osId = 'os_' + Date.now();
+
+		// Salva checklist de vistoria
+		if (typeof VistoriaService !== 'undefined') {
+			VistoriaService.salvarVistoria(osId, {
+				pertences: vistoriaPertences ? vistoriaPertences.checked : true,
+				avarias: vistoriaAvarias ? vistoriaAvarias.checked : false,
+				vidros: vistoriaVidros ? vistoriaVidros.checked : true,
+				estepe: vistoriaEstepe ? vistoriaEstepe.checked : true,
+				observacoes: vistoriaObs ? vistoriaObs.value.trim() : ''
+			});
+		}
+
 		const novoPedido = {
-			id: 'os_' + Date.now(),
+			id: osId,
 			cliente: clienteNome,
 			placa: placa,
 			cor: cor,
 			modelo: modelo,
 			servicos: servicosSelecionados.join(', '),
+			operadorId: operadorId,
+			operadorNome: operadorNome,
 			data: data,
 			horaEntrada: obterHoraAtual(),
 			valor: valor,
@@ -594,6 +654,7 @@ if (pedidoForm) {
 		pedidoForm.reset();
 		if (pedidoData) pedidoData.value = obterDataHojeISO();
 		popularCoresVeiculo();
+		popularSelectOperadores();
 		renderizarTabelas();
 
 		// Rola até o pátio e garante a aba ativa
@@ -606,5 +667,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	normalizarDadosPedidos();
 	popularCoresVeiculo();
 	carregarSelectServicos();
+	popularSelectOperadores();
 	renderizarTabelas();
 });

@@ -19,8 +19,12 @@
 				</a>
 				<nav class="navbar">
 					<a href="index.html">🏠 Início</a>
+					<a href="agendamentos.html">📅 Agendamentos</a>
 					<a href="pedidos.html" class="active">📋 Pedidos / O.S.</a>
 					<a href="caixa.html">💰 Livro Caixa</a>
+					<a href="estoque.html">📦 Estoque</a>
+					<a href="fidelidade.html">🎁 Pós-Venda</a>
+					<a href="equipe.html">👥 Equipe</a>
 					<a href="clientes.html">👤 Clientes</a>
 					<a href="servicos.html">🛠️ Serviços</a>
 				</nav>
@@ -110,6 +114,14 @@
 							placeholder="0.00" />
 					</div>
 
+					<!-- Responsável / Lavador Executante -->
+					<div class="form-group">
+						<label for="pedidoOperador">Profissional / Lavador Responsável</label>
+						<select id="pedidoOperador">
+							<option value="">Selecione quem executará o serviço...</option>
+						</select>
+					</div>
+
 					<!-- Serviços Selecionáveis -->
 					<div class="form-group full-width">
 						<label for="pedidoServico">
@@ -121,6 +133,23 @@
 						<select id="pedidoServico" multiple required>
 							<!-- Preenchido via JS -->
 						</select>
+					</div>
+
+					<!-- Checklist / Vistoria Rápida de Entrada -->
+					<div class="form-group full-width" style="background:#f8fafc; border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:12px;">
+						<div style="font-weight:700; font-size:0.92rem; margin-bottom:8px; color:var(--text-main); display:flex; align-items:center; gap:6px;">
+							<span>🔍 Vistoria & Checklist Rápido de Entrada</span>
+							<span style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);">(Evita contestações de avarias)</span>
+						</div>
+						<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; font-size:0.85rem;">
+							<label class="checkbox-label" style="margin:0;"><input type="checkbox" id="vistoriaPertences" checked /> Pertences no interior</label>
+							<label class="checkbox-label" style="margin:0;"><input type="checkbox" id="vistoriaAvarias" /> Possui riscos / amassados</label>
+							<label class="checkbox-label" style="margin:0;"><input type="checkbox" id="vistoriaVidros" checked /> Vidros e travas intactos</label>
+							<label class="checkbox-label" style="margin:0;"><input type="checkbox" id="vistoriaEstepe" checked /> Estepe e ferramentas presentes</label>
+						</div>
+						<div style="margin-top:10px;">
+							<input type="text" id="vistoriaObs" placeholder="Descreva riscos prévios ou detalhes do veículo (ex: parachoque dianteiro ralado)..." style="font-size:0.85rem;" />
+						</div>
 					</div>
 
 					<div class="form-actions">
@@ -270,6 +299,8 @@
 
 		<script src="js/brand-service.js"></script>
 		<script src="js/caixa-service.js"></script>
+		<script src="js/equipe-service.js"></script>
+		<script src="js/vistoria-service.js"></script>
 		<script src="js/recibo-service.js"></script>
 		<script src="js/pedidos.js"></script>
 	</body>

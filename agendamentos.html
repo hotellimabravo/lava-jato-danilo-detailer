@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+		<title>Agendamentos & Google Calendar - Lava Jato</title>
+		<link rel="stylesheet" href="style.css" />
+		<script src="https://accounts.google.com/gsi/client" async defer></script>
+	</head>
+	<body>
+		<!-- Header -->
+		<header class="site-header">
+			<div class="header-inner">
+				<a href="index.html" class="brand-wrapper">
+					<div class="brand-logo">🛠️</div>
+					<div class="brand-title">
+						<span>OUTRO SEGMENTO</span>
+						<span class="brand-subtitle">SEU NEGÓCIO</span>
+					</div>
+				</a>
+				<nav class="navbar">
+					<a href="index.html">🏠 Início</a>
+					<a href="agendamentos.html" class="active">📅 Agendamentos</a>
+					<a href="pedidos.html">📋 Pedidos / O.S.</a>
+					<a href="caixa.html">💰 Livro Caixa</a>
+					<a href="clientes.html">👤 Clientes</a>
+					<a href="servicos.html">🛠️ Serviços</a>
+				</nav>
+				<div class="header-actions">
+					<a href="configuracoes.html" class="btn-settings-gear" title="Configurações e Banco de Dados" id="btnConfiguracoes">
+						⚙️
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- Main -->
+		<main class="container">
+			<div class="page-header">
+				<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+					<div>
+						<h1 class="page-title">Agendamentos & Grade de Horários</h1>
+						<p class="page-subtitle">Organize horários com antecedência, envie lembretes via WhatsApp e sincronize com o Google Calendar</p>
+					</div>
+					<div id="googleCalendarStatusBadge" style="display:inline-flex; align-items:center; gap:8px; padding:6px 12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:var(--radius-sm); font-size:0.85rem; color:#1e40af;">
+						<span>📅 Google Calendar:</span>
+						<strong>Ativo & Conectável</strong>
+					</div>
+				</div>
+			</div>
+
+			<!-- Toast de Sucesso -->
+			<div id="toastSucessoAgendamento" class="db-status-banner" style="display:none; background:#f0fdf4; border-color:#bbf7d0; color:#166534; margin-bottom:20px;">
+				<span class="db-status-icon">✅</span>
+				<div class="db-status-text">
+					<strong>Agendamento Cadastrado com Sucesso!</strong>
+					<p style="color:#15803d;">O horário foi reservado e você já pode enviar o link no WhatsApp do cliente ou iniciar a O.S. quando o carro chegar.</p>
+				</div>
+			</div>
+
+			<!-- Métricas de Agendamento -->
+			<div class="dashboard-grid" style="margin-bottom: 20px;">
+				<div class="stat-card">
+					<div class="stat-icon blue">📅</div>
+					<div class="stat-info">
+						<span class="stat-label">Agendamentos Para Hoje</span>
+						<span class="stat-value" id="countAgendamentosHoje">0</span>
+					</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-icon green">🕒</div>
+					<div class="stat-info">
+						<span class="stat-label">Próximos Dias / Futuros</span>
+						<span class="stat-value" id="countAgendamentosFuturos">0</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Formulário de Novo Agendamento -->
+			<div class="content-card">
+				<div class="content-card-title">
+					<span>➕ Reservar Novo Horário / Agendamento</span>
+				</div>
+
+				<form id="agendamentoForm" class="form">
+					<!-- Cliente com Autocomplete -->
+					<div class="form-group" style="position: relative;">
+						<label for="agendamentoCliente">Cliente *</label>
+						<input
+							type="text"
+							id="agendamentoCliente"
+							required
+							autocomplete="off"
+							placeholder="Nome do cliente ou digite para buscar..." />
+						<div id="sugestoesClientesAgendamento" class="sugestoes"></div>
+					</div>
+
+					<!-- Placa do Veículo -->
+					<div class="form-group">
+						<label for="agendamentoPlaca">Placa do Veículo *</label>
+						<input
+							type="text"
+							id="agendamentoPlaca"
+							required
+							maxlength="8"
+							style="text-transform: uppercase; font-family: 'Courier New', monospace; font-weight: 700;"
+							placeholder="Ex: ABC1D23" />
+					</div>
+
+					<!-- Cor do Veículo -->
+					<div class="form-group">
+						<label for="agendamentoCor" style="display: flex; align-items: center; justify-content: space-between;">
+							<span>Cor do Veículo *</span>
+							<span id="previewCorAgendamento" style="display: inline-flex; align-items: center; gap: 6px;"></span>
+						</label>
+						<select id="agendamentoCor" required></select>
+					</div>
+
+					<!-- Modelo -->
+					<div class="form-group">
+						<label for="agendamentoModelo">Modelo / Veículo</label>
+						<input
+							type="text"
+							id="agendamentoModelo"
+							placeholder="Ex: Honda Civic, Hilux, Gol..." />
+					</div>
+
+					<!-- Data do Agendamento -->
+					<div class="form-group">
+						<label for="agendamentoData">Data Marcada *</label>
+						<input type="date" id="agendamentoData" required />
+					</div>
+
+					<!-- Horário do Agendamento -->
+					<div class="form-group">
+						<label for="agendamentoHora">Horário de Início *</label>
+						<input type="time" id="agendamentoHora" value="09:00" required />
+					</div>
+
+					<!-- Duração Estimada -->
+					<div class="form-group">
+						<label for="agendamentoDuracao">Duração Estimada</label>
+						<select id="agendamentoDuracao">
+							<option value="30">30 minutos (Lavagem Rápida)</option>
+							<option value="60" selected>1 hora (Lavagem Completa)</option>
+							<option value="90">1 hora e 30 min (Higienização/Cera)</option>
+							<option value="120">2 horas (Polimento/Detailing)</option>
+							<option value="240">4 horas (Vitrificação)</option>
+						</select>
+					</div>
+
+					<!-- Valor Previsto -->
+					<div class="form-group">
+						<label for="agendamentoValor">Valor Previsto (R$) *</label>
+						<input
+							type="number"
+							id="agendamentoValor"
+							step="0.01"
+							min="0"
+							required
+							placeholder="0.00" />
+					</div>
+
+					<!-- Serviços -->
+					<div class="form-group full-width">
+						<label for="agendamentoServico">
+							Serviços Desejados * 
+							<span style="font-weight: normal; color: var(--text-muted); font-size: 0.82rem;">
+								(Segure Ctrl / Shift para marcar mais de um serviço)
+							</span>
+						</label>
+						<select id="agendamentoServico" multiple required></select>
+					</div>
+
+					<!-- Observações -->
+					<div class="form-group full-width">
+						<label for="agendamentoObs">Observações do Agendamento (Opcional)</label>
+						<input type="text" id="agendamentoObs" placeholder="Ex: Cliente vai esperar no local, veículo com manchas de barro..." />
+					</div>
+
+					<!-- Sincronização Google Calendar Checkbox -->
+					<div class="form-group full-width" style="margin-top: -6px;">
+						<label class="checkbox-label" style="font-weight: 600; color: #1e40af;">
+							<input type="checkbox" id="checkSincronizarGoogle" checked /> 
+							📅 Sincronizar automaticamente com o Google Calendar ao salvar
+						</label>
+					</div>
+
+					<div class="form-actions">
+						<button type="submit" class="btn">📅 Confirmar & Agendar Horário</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- Tabela de Agendamentos -->
+			<div class="content-card">
+				<div class="content-card-title" style="flex-wrap: wrap; gap: 10px;">
+					<span>Agenda de Atendimentos</span>
+					<div style="display:flex; align-items:center; gap:8px;">
+						<label for="filtroDataAgendamento" style="font-size:0.85rem; color:var(--text-muted); margin:0;">Filtrar por data:</label>
+						<input type="date" id="filtroDataAgendamento" style="padding:4px 8px; font-size:0.85rem;" />
+						<button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('filtroDataAgendamento').value=''; renderizarListaAgendamentos();">Ver Todos</button>
+					</div>
+				</div>
+
+				<div class="table-responsive">
+					<table class="tabela">
+						<thead>
+							<tr>
+								<th>Horário & Data</th>
+								<th>Veículo & Placa</th>
+								<th>Cliente</th>
+								<th>Serviços</th>
+								<th>Valor Previsto</th>
+								<th>Status</th>
+								<th style="text-align: center;">Ações & WhatsApp</th>
+							</tr>
+						</thead>
+						<tbody id="corpoTabelaAgendamentos">
+							<!-- Renderizado via JS -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</main>
+
+		<!-- Modal: Reagendar / Mudar Horário -->
+		<div id="modalReagendar" class="modal-overlay">
+			<div class="modal-card">
+				<div class="modal-header">
+					<h3>✏️ Reagendar Horário</h3>
+					<button type="button" class="modal-close-btn" id="modalReagendarX">&times;</button>
+				</div>
+				<form id="formReagendar">
+					<div class="modal-body">
+						<div class="form-group" style="margin-bottom: 14px;">
+							<label for="reagendarData">Nova Data *</label>
+							<input type="date" id="reagendarData" required />
+						</div>
+						<div class="form-group">
+							<label for="reagendarHora">Novo Horário *</label>
+							<input type="time" id="reagendarHora" required />
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" id="modalCancelarReagendarBtn">Cancelar</button>
+						<button type="submit" class="btn btn-primary">Salvar Novo Horário</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script src="js/brand-service.js"></script>
+		<script src="js/caixa-service.js"></script>
+		<script src="js/google-calendar-service.js"></script>
+		<script src="js/agendamentos.js"></script>
+	</body>
+</html>

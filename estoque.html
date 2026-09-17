@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+		<title>Estoque de Insumos & Produtos - Lava Jato</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<!-- Header -->
+		<header class="site-header">
+			<div class="header-inner">
+				<a href="index.html" class="brand-wrapper">
+					<div class="brand-logo">🛠️</div>
+					<div class="brand-title">
+						<span>OUTRO SEGMENTO</span>
+						<span class="brand-subtitle">SEU NEGÓCIO</span>
+					</div>
+				</a>
+				<nav class="navbar">
+					<a href="index.html">🏠 Início</a>
+					<a href="agendamentos.html">📅 Agendamentos</a>
+					<a href="pedidos.html">📋 Pedidos / O.S.</a>
+					<a href="caixa.html">💰 Livro Caixa</a>
+					<a href="estoque.html" class="active">📦 Estoque</a>
+					<a href="fidelidade.html">🎁 Pós-Venda</a>
+					<a href="clientes.html">👤 Clientes</a>
+					<a href="servicos.html">🛠️ Serviços</a>
+				</nav>
+				<div class="header-actions">
+					<a href="configuracoes.html" class="btn-settings-gear" title="Configurações e Banco de Dados" id="btnConfiguracoes">
+						⚙️
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- Main -->
+		<main class="container">
+			<div class="page-header">
+				<h1 class="page-title">Controle de Estoque & Insumos</h1>
+				<p class="page-subtitle">Acompanhe shampoos, ceras, vitrificadores e materiais com avisos automáticos de reposição</p>
+			</div>
+
+			<!-- Alerta de Estoque Baixo se houver -->
+			<div id="alertaEstoqueCritico" class="db-status-banner" style="display:none; background:#fffbeb; border-color:#fef3c7; color:#92400e; margin-bottom:20px;">
+				<span class="db-status-icon">⚠️</span>
+				<div class="db-status-text">
+					<strong>Atenção: Há produtos atingindo o nível mínimo de reposição!</strong>
+					<p id="textoProdutosCriticos" style="color:#b45309; margin-top:3px;"></p>
+				</div>
+			</div>
+
+			<!-- Métricas Rápidas -->
+			<div class="dashboard-grid" style="margin-bottom: 20px;">
+				<div class="stat-card">
+					<div class="stat-icon blue">📦</div>
+					<div class="stat-info">
+						<span class="stat-label">Total de Itens Cadastrados</span>
+						<span class="stat-value" id="statTotalItensEstoque">0</span>
+					</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-icon amber">⚠️</div>
+					<div class="stat-info">
+						<span class="stat-label">Itens com Estoque Baixo</span>
+						<span class="stat-value" id="statItensCriticos">0</span>
+					</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-icon green">💰</div>
+					<div class="stat-info">
+						<span class="stat-label">Valor do Estoque em Custo</span>
+						<span class="stat-value" id="statValorTotalEstoque">R$ 0,00</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Form Adicionar Novo Insumo -->
+			<div class="content-card">
+				<div class="content-card-title">
+					<span>➕ Adicionar Novo Insumo / Produto</span>
+				</div>
+				<form id="formNovoInsumo" class="form">
+					<div class="form-group">
+						<label for="insumoNome">Nome do Insumo / Produto *</label>
+						<input type="text" id="insumoNome" required placeholder="Ex: Shampoo Desengraxante 5L" />
+					</div>
+					<div class="form-group">
+						<label for="insumoCategoria">Categoria</label>
+						<select id="insumoCategoria">
+							<option value="Químicos / Lavagem">Químicos / Lavagem</option>
+							<option value="Ceras e Proteção">Ceras e Proteção</option>
+							<option value="Pneus e Rodas">Pneus e Rodas</option>
+							<option value="Detailing / Proteção">Detailing / Proteção</option>
+							<option value="Acessórios e Fibras">Acessórios e Fibras</option>
+							<option value="Geral">Geral</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="insumoQtd">Quantidade Atual *</label>
+						<input type="number" id="insumoQtd" step="0.1" min="0" required placeholder="0" />
+					</div>
+					<div class="form-group">
+						<label for="insumoQtdMin">Quantidade Mínima de Alerta *</label>
+						<input type="number" id="insumoQtdMin" step="0.1" min="0" required value="2" />
+					</div>
+					<div class="form-group">
+						<label for="insumoUnidade">Unidade de Medida</label>
+						<select id="insumoUnidade">
+							<option value="Galão">Galão (5L)</option>
+							<option value="Frasco">Frasco (500ml/1L)</option>
+							<option value="Unidade">Unidade</option>
+							<option value="Pacote">Pacote / Kit</option>
+							<option value="Litro">Litro</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="insumoCusto">Preço Unitário de Custo (R$)</label>
+						<input type="number" id="insumoCusto" step="0.01" min="0" placeholder="0.00" />
+					</div>
+					<div class="form-actions">
+						<button type="submit" class="btn">📦 Cadastrar no Estoque</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- Tabela de Insumos -->
+			<div class="content-card">
+				<div class="content-card-title">
+					<span>Itens em Estoque</span>
+				</div>
+				<div class="table-responsive">
+					<table class="tabela">
+						<thead>
+							<tr>
+								<th>Produto / Insumo</th>
+								<th>Categoria</th>
+								<th>Qtd Atual</th>
+								<th>Mínimo</th>
+								<th>Status</th>
+								<th>Custo Unit.</th>
+								<th style="text-align: center;">Ações Rápidas (+/-)</th>
+							</tr>
+						</thead>
+						<tbody id="corpoTabelaEstoque">
+							<!-- Preenchido via JS -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</main>
+
+		<script src="js/brand-service.js"></script>
+		<script src="js/estoque-service.js"></script>
+		<script>
+			function carregarTabelaEstoque() {
+				const produtos = EstoqueService.getProdutos();
+				const criticos = EstoqueService.getAlertasEstoqueBaixo();
+				const corpo = document.getElementById('corpoTabelaEstoque');
+
+				document.getElementById('statTotalItensEstoque').textContent = produtos.length;
+				document.getElementById('statItensCriticos').textContent = criticos.length;
+
+				let valorCustoTotal = 0;
+				produtos.forEach(p => {
+					valorCustoTotal += (p.quantidade || 0) * (p.precoCusto || 0);
+				});
+				document.getElementById('statValorTotalEstoque').textContent = `R$ ${valorCustoTotal.toFixed(2)}`;
+
+				// Alerta topo
+				const alertaBox = document.getElementById('alertaEstoqueCritico');
+				const textoCriticos = document.getElementById('textoProdutosCriticos');
+				if (criticos.length > 0) {
+					alertaBox.style.display = 'flex';
+					textoCriticos.textContent = `${criticos.length} item(ns) estão no limite mínimo: ${criticos.map(c => c.nome).join(', ')}`;
+				} else {
+					alertaBox.style.display = 'none';
+				}
+
+				corpo.innerHTML = '';
+				if (produtos.length === 0) {
+					corpo.innerHTML = '<tr><td colspan="7" class="empty-table-message">Nenhum insumo cadastrado no estoque.</td></tr>';
+					return;
+				}
+
+				produtos.forEach(p => {
+					const isCritico = (p.quantidade || 0) <= (p.qtdMinima || 0);
+					const badge = isCritico 
+						? `<span class="badge" style="background:#fee2e2; color:#b91c1c; border-color:#fecaca;">⚠️ Estoque Baixo</span>`
+						: `<span class="badge" style="background:#dcfce7; color:#15803d; border-color:#bbf7d0;">✅ OK</span>`;
+
+					const tr = document.createElement('tr');
+					tr.innerHTML = `
+						<td><strong>${p.nome}</strong></td>
+						<td><span style="font-size:0.85rem; color:var(--text-muted);">${p.categoria || '-'}</span></td>
+						<td><strong style="font-size:1rem; color:${isCritico ? '#dc2626' : 'inherit'};">${p.quantidade} ${p.unidade}</strong></td>
+						<td>${p.qtdMinima} ${p.unidade}</td>
+						<td>${badge}</td>
+						<td>R$ ${parseFloat(p.precoCusto || 0).toFixed(2)}</td>
+						<td style="text-align:center;">
+							<div style="display:inline-flex; align-items:center; gap:4px;">
+								<button type="button" class="btn btn-sm btn-secondary" style="padding:2px 8px; font-weight:700;" onclick="alterarEstoque('${p.id}', -1)" title="Subtrair 1">-1</button>
+								<button type="button" class="btn btn-sm btn-secondary" style="padding:2px 8px; font-weight:700;" onclick="alterarEstoque('${p.id}', 1)" title="Adicionar 1">+1</button>
+								<button type="button" class="btn btn-sm" style="padding:2px 6px; background:transparent; border:1px solid #ef4444; color:#ef4444; margin-left:6px;" onclick="excluirItemEstoque('${p.id}')" title="Excluir">🗑️</button>
+							</div>
+						</td>
+					`;
+					corpo.appendChild(tr);
+				});
+			}
+
+			window.alterarEstoque = function(id, delta) {
+				EstoqueService.ajustarEstoque(id, delta);
+				carregarTabelaEstoque();
+			};
+
+			window.excluirItemEstoque = function(id) {
+				EstoqueService.removerProduto(id);
+				carregarTabelaEstoque();
+			};
+
+			document.getElementById('formNovoInsumo').addEventListener('submit', (e) => {
+				e.preventDefault();
+				const nome = document.getElementById('insumoNome').value.trim();
+				const categoria = document.getElementById('insumoCategoria').value;
+				const quantidade = parseFloat(document.getElementById('insumoQtd').value || 0);
+				const qtdMinima = parseFloat(document.getElementById('insumoQtdMin').value || 1);
+				const unidade = document.getElementById('insumoUnidade').value;
+				const precoCusto = parseFloat(document.getElementById('insumoCusto').value || 0);
+
+				EstoqueService.adicionarProduto({ nome, categoria, quantidade, qtdMinima, unidade, precoCusto });
+				document.getElementById('formNovoInsumo').reset();
+				carregarTabelaEstoque();
+			});
+
+			document.addEventListener('DOMContentLoaded', carregarTabelaEstoque);
+		</script>
+	</body>
+</html>
