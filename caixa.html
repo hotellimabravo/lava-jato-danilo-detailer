@@ -254,6 +254,50 @@
 			</div>
 		</div>
 
+		<!-- Modal: Reabrir Caixa -->
+		<div id="modalReabrirCaixa" class="modal-overlay">
+			<div class="modal-card">
+				<div class="modal-header">
+					<h3>🔓 Reabrir Caixa de Hoje</h3>
+					<button type="button" class="modal-close-btn" id="modalReabrirCaixaX">&times;</button>
+				</div>
+				<div class="modal-body">
+					<p style="margin-bottom: 12px; color: var(--text-main); font-size: 0.95rem;">
+						Tem certeza de que deseja <strong>reabrir o caixa do dia de hoje</strong>?
+					</p>
+					<div style="background-color: var(--primary-light); border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 12px; font-size: 0.88rem; color: var(--primary-dark);">
+						ℹ️ O status voltará para <strong>● Aberto</strong>, permitindo novos lançamentos de serviços, recebimentos e saídas. O fundo de troco e a hora de abertura originais serão preservados.
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" id="modalCancelarReabrirBtn">Cancelar</button>
+					<button type="button" class="btn btn-primary" id="btnConfirmarReabrirCaixaModal">🔓 Confirmar Reabertura</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Modal: Confirmar Exclusão de Saída -->
+		<div id="modalConfirmarExclusaoSaida" class="modal-overlay">
+			<div class="modal-card">
+				<div class="modal-header">
+					<h3>🗑️ Excluir Saída de Caixa</h3>
+					<button type="button" class="modal-close-btn" id="modalExcluirSaidaX">&times;</button>
+				</div>
+				<div class="modal-body">
+					<p style="margin-bottom: 12px; color: var(--text-main); font-size: 0.95rem;">
+						Deseja realmente excluir este lançamento de saída/sangria?
+					</p>
+					<div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 12px; font-size: 0.88rem; color: #b91c1c;">
+						⚠️ O valor será estornado e o saldo do caixa será recalculado imediatamente.
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" id="modalCancelarExcluirSaidaBtn">Cancelar</button>
+					<button type="button" class="btn" style="background-color: #ef4444;" id="btnConfirmarExclusaoSaidaModal">Confirmar Exclusão</button>
+				</div>
+			</div>
+		</div>
+
 		<script src="js/brand-service.js"></script>
 		<script src="js/caixa-service.js"></script>
 		<script src="js/caixa.js"></script>

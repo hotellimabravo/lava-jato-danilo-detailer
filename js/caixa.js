@@ -37,6 +37,19 @@ const modalResumoValor = document.getElementById('modalResumoValor');
 const modalFundoTrocoInput = document.getElementById('modalFundoTrocoInput');
 const modalObservacoesFechamento = document.getElementById('modalObservacoesFechamento');
 
+// Modal de Reabertura
+const modalReabrirCaixa = document.getElementById('modalReabrirCaixa');
+const modalReabrirCaixaX = document.getElementById('modalReabrirCaixaX');
+const modalCancelarReabrirBtn = document.getElementById('modalCancelarReabrirBtn');
+const btnConfirmarReabrirCaixaModal = document.getElementById('btnConfirmarReabrirCaixaModal');
+
+// Modal de Exclusão de Saída
+const modalConfirmarExclusaoSaida = document.getElementById('modalConfirmarExclusaoSaida');
+const modalExcluirSaidaX = document.getElementById('modalExcluirSaidaX');
+const modalCancelarExcluirSaidaBtn = document.getElementById('modalCancelarExcluirSaidaBtn');
+const btnConfirmarExclusaoSaidaModal = document.getElementById('btnConfirmarExclusaoSaidaModal');
+let idSaidaParaExcluir = null;
+
 function formatarDataBR(dataISO) {
 	if (!dataISO) return '--/--/----';
 	const partes = dataISO.split('-');
@@ -307,20 +320,53 @@ if (formConfirmarFechamentoCaixa) {
 	});
 }
 
-if (btnReabrirCaixa) {
-	btnReabrirCaixa.addEventListener('click', () => {
-		if (confirm('Deseja reabrir o caixa de hoje para novos lançamentos e recebimentos?')) {
-			CaixaService.reabrirCaixaHoje();
+// Controle do Modal de Reabertura de Caixa
+function abrirModalReabrir() {
+	if (modalReabrirCaixa) modalReabrirCaixa.classList.add('open');
+}
+
+function fecharModalReabrir() {
+	if (modalReabrirCaixa) modalReabrirCaixa.classList.remove('open');
+}
+
+if (btnReabrirCaixa) btnReabrirCaixa.addEventListener('click', abrirModalReabrir);
+if (modalReabrirCaixaX) modalReabrirCaixaX.addEventListener('click', fecharModalReabrir);
+if (modalCancelarReabrirBtn) modalCancelarReabrirBtn.addEventListener('click', fecharModalReabrir);
+
+if (btnConfirmarReabrirCaixaModal) {
+	btnConfirmarReabrirCaixaModal.addEventListener('click', () => {
+		CaixaService.reabrirCaixaHoje();
+		fecharModalReabrir();
+		carregarDadosCaixa();
+	});
+}
+
+// Controle do Modal de Exclusão de Saída
+function abrirModalExcluirSaida(id) {
+	idSaidaParaExcluir = id;
+	if (modalConfirmarExclusaoSaida) modalConfirmarExclusaoSaida.classList.add('open');
+}
+
+function fecharModalExcluirSaida() {
+	idSaidaParaExcluir = null;
+	if (modalConfirmarExclusaoSaida) modalConfirmarExclusaoSaida.classList.remove('open');
+}
+
+if (modalExcluirSaidaX) modalExcluirSaidaX.addEventListener('click', fecharModalExcluirSaida);
+if (modalCancelarExcluirSaidaBtn) modalCancelarExcluirSaidaBtn.addEventListener('click', fecharModalExcluirSaida);
+
+if (btnConfirmarExclusaoSaidaModal) {
+	btnConfirmarExclusaoSaidaModal.addEventListener('click', () => {
+		if (idSaidaParaExcluir) {
+			CaixaService.removerSaida(idSaidaParaExcluir);
+			fecharModalExcluirSaida();
 			carregarDadosCaixa();
 		}
 	});
 }
 
 window.removerSaidaGlobal = function(id) {
-    if(confirm('Tem certeza que deseja excluir esta saída? O saldo será recalculado.')) {
-        CaixaService.removerSaida(id);
-        carregarDadosCaixa();
-    }
+	abrirModalExcluirSaida(id);
 };
 
 document.addEventListener('DOMContentLoaded', () => {

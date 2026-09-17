@@ -236,14 +236,22 @@ class CaixaService {
 	static reabrirCaixaHoje() {
 		const hoje = obterDataHojeISO();
 		let fechamentos = JSON.parse(localStorage.getItem('caixas_fechados')) || [];
+		
+		// Guarda o valor do fundo de troco do fechamento original, caso exista
+		const fechamentoHoje = fechamentos.find(f => f.data === hoje);
+
 		fechamentos = fechamentos.filter(f => f.data !== hoje);
 		localStorage.setItem('caixas_fechados', JSON.stringify(fechamentos));
 
-		const caixaAtual = {
+		let caixaAtual = JSON.parse(localStorage.getItem('caixa_atual')) || {};
+
+		caixaAtual = {
 			data: hoje,
 			status: 'aberto',
-			horaAbertura: obterHoraAtual(),
-			fundoTroco: 0
+			// Preserva a hora de abertura original, senão pega a atual
+			horaAbertura: caixaAtual.horaAbertura || obterHoraAtual(),
+			// Preserva o troco que foi definido no fechamento ou o que já estava em andamento
+			fundoTroco: fechamentoHoje ? (fechamentoHoje.fundoTroco || 0) : (caixaAtual.fundoTroco || 0)
 		};
 		localStorage.setItem('caixa_atual', JSON.stringify(caixaAtual));
 	}
