@@ -2,7 +2,7 @@
 
 Projeto de um pequeno CRM e controle financeiro para o lava-jato "Danilo Detailer". Criado com assistência de inteligência artificial e desenvolvido de forma independente.
 
-🔗 **Link de Acesso (Preview):** [https://hotellimabravo.github.io/lava-jato-danilo-detailer/index.html](https://hotellimabravo.github.io/lava-jato-danilo-detailer/index.html)
+🔗 **Link de Acesso (Preview):** [https://hotellimabravo.github.io/plataforma-multi-empresas/](https://hotellimabravo.github.io/plataforma-multi-empresas/)
 
 ## 📌 Sobre o Sistema
 Este sistema foi projetado para rodar diretamente no navegador, focado em resolver as necessidades diárias de um centro de estética automotiva. O objetivo é substituir o papel e planilhas por uma interface moderna, rápida e intuitiva que permita desde o cadastro de clientes até o controle financeiro de ponta a ponta e automações de CRM.
