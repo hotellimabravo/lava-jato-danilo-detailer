@@ -69,9 +69,10 @@ const ReciboService = {
 		// Recupera preços cadastrados se houver para exibir por item
 		const servicosCadastrados = JSON.parse(localStorage.getItem('servicos')) || [];
 		let linhasItensHTML = '';
+		let contadorItem = 1;
 
 		if (servicosLista.length > 0) {
-			servicosLista.forEach((itemNome, idx) => {
+			servicosLista.forEach((itemNome) => {
 				const itemCadastrado = servicosCadastrados.find(
 					sc => sc.nome && sc.nome.trim().toLowerCase() === itemNome.toLowerCase()
 				);
@@ -80,7 +81,7 @@ const ReciboService = {
 
 				linhasItensHTML += `
 					<div class="cupom-item-row">
-						<span class="cupom-item-num">${String(idx + 1).padStart(2, '0')}</span>
+						<span class="cupom-item-num">${String(contadorItem++).padStart(2, '0')}</span>
 						<span class="cupom-item-desc">${this.escaparHTML(itemNome)}</span>
 						<span class="cupom-item-val">${precoTexto}</span>
 					</div>
@@ -94,6 +95,23 @@ const ReciboService = {
 					<span class="cupom-item-val">${this.formatarMoeda(valorFinal)}</span>
 				</div>
 			`;
+			contadorItem = 2;
+		}
+
+		// Produtos vendidos discriminados
+		if (pedido.produtosVendidos && Array.isArray(pedido.produtosVendidos) && pedido.produtosVendidos.length > 0) {
+			pedido.produtosVendidos.forEach((prod) => {
+				const qtd = parseFloat(prod.quantidade || 1);
+				const unit = parseFloat(prod.precoUnitario || prod.preco || 0);
+				const totalProd = qtd * unit;
+				linhasItensHTML += `
+					<div class="cupom-item-row" style="color:#1e3a8a;">
+						<span class="cupom-item-num">${String(contadorItem++).padStart(2, '0')}</span>
+						<span class="cupom-item-desc">🛍️ ${this.escaparHTML(prod.nome)} (${qtd}x ${this.formatarMoeda(unit)})</span>
+						<span class="cupom-item-val">${this.formatarMoeda(totalProd)}</span>
+					</div>
+				`;
+			});
 		}
 
 		// Detalhes do item/veículo atendido

@@ -64,26 +64,33 @@
 			</div>
 
 			<!-- Métricas Rápidas -->
-			<div class="dashboard-grid" style="margin-bottom: 20px;">
+			<div class="dashboard-grid" style="margin-bottom: 20px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
 				<div class="stat-card">
 					<div class="stat-icon blue">📦</div>
 					<div class="stat-info">
-						<span class="stat-label">Total de Itens Cadastrados</span>
+						<span class="stat-label">Total de Itens</span>
 						<span class="stat-value" id="statTotalItensEstoque">0</span>
 					</div>
 				</div>
 				<div class="stat-card">
 					<div class="stat-icon amber">⚠️</div>
 					<div class="stat-info">
-						<span class="stat-label">Itens com Estoque Baixo</span>
+						<span class="stat-label">Estoque Baixo</span>
 						<span class="stat-value" id="statItensCriticos">0</span>
 					</div>
 				</div>
 				<div class="stat-card">
 					<div class="stat-icon green">💰</div>
 					<div class="stat-info">
-						<span class="stat-label">Valor do Estoque em Custo</span>
+						<span class="stat-label">Valor em Custo</span>
 						<span class="stat-value" id="statValorTotalEstoque">R$ 0,00</span>
+					</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-icon blue" style="background:#eff6ff; color:#2563eb;">🏷️</div>
+					<div class="stat-info">
+						<span class="stat-label">Itens p/ Venda Balcão</span>
+						<span class="stat-value" id="statTotalItensVenda">0</span>
 					</div>
 				</div>
 			</div>
@@ -94,9 +101,32 @@
 					<span>➕ Adicionar Novo Insumo / Produto</span>
 				</div>
 				<form id="formNovoInsumo" class="form">
+					<!-- Seletor de Destinação / Tipo de Produto -->
+					<div class="form-group full-width" style="margin-bottom: 8px;">
+						<label style="font-weight: 700; display: block; margin-bottom: 6px;">Destinação do Produto *</label>
+						<div class="tipo-produto-selector">
+							<label class="tipo-card active" id="cardTipoInterno" onclick="selecionarTipoProduto('interno')">
+								<input type="radio" name="insumoTipo" id="tipoInterno" value="interno" checked />
+								<span class="tipo-card-icon">🏢</span>
+								<div class="tipo-card-text">
+									<strong>Uso Interno</strong>
+									<small>Insumo consumido na execução dos serviços (não vendido)</small>
+								</div>
+							</label>
+							<label class="tipo-card" id="cardTipoVenda" onclick="selecionarTipoProduto('venda')">
+								<input type="radio" name="insumoTipo" id="tipoVenda" value="venda" />
+								<span class="tipo-card-icon">🏷️</span>
+								<div class="tipo-card-text">
+									<strong>Venda ao Consumidor</strong>
+									<small>Produto comercializado para o cliente (disponível na O.S.)</small>
+								</div>
+							</label>
+						</div>
+					</div>
+
 					<div class="form-group">
 						<label for="insumoNome">Nome do Insumo / Produto *</label>
-						<input type="text" id="insumoNome" required placeholder="Ex: Shampoo Desengraxante 5L" />
+						<input type="text" id="insumoNome" required placeholder="Ex: Shampoo Desengraxante 5L ou Aromatizante Gel" />
 					</div>
 					<div class="form-group">
 						<label for="insumoCategoria">Categoria</label>
@@ -105,7 +135,7 @@
 							<option value="Ceras e Proteção">Ceras e Proteção</option>
 							<option value="Pneus e Rodas">Pneus e Rodas</option>
 							<option value="Detailing / Proteção">Detailing / Proteção</option>
-							<option value="Acessórios e Fibras">Acessórios e Fibras</option>
+							<option value="Acessórios e Balcão">Acessórios e Balcão</option>
 							<option value="Geral">Geral</option>
 						</select>
 					</div>
@@ -120,19 +150,61 @@
 					<div class="form-group">
 						<label for="insumoUnidade">Unidade de Medida</label>
 						<select id="insumoUnidade">
-							<option value="Galão">Galão (5L)</option>
-							<option value="Frasco">Frasco (500ml/1L)</option>
 							<option value="Unidade">Unidade</option>
+							<option value="Frasco">Frasco (500ml/1L)</option>
+							<option value="Galão">Galão (5L)</option>
 							<option value="Pacote">Pacote / Kit</option>
 							<option value="Litro">Litro</option>
 						</select>
 					</div>
 					<div class="form-group">
-						<label for="insumoCusto">Preço Unitário de Custo (R$)</label>
-						<input type="number" id="insumoCusto" step="0.01" min="0" placeholder="0.00" />
+						<label for="insumoCusto">Preço Unitário de Custo (R$) *</label>
+						<input type="number" id="insumoCusto" step="0.01" min="0" required placeholder="0.00" />
 					</div>
-					<div class="form-actions">
-						<button type="submit" class="btn">📦 Cadastrar no Estoque</button>
+
+					<!-- Bloco de Precificação Comercial (Ativado quando for 'venda') -->
+					<div class="form-group full-width" id="blocoPrecificacaoVenda" style="display: none;">
+						<div class="bloco-precificacao-venda">
+							<div class="bloco-precificacao-title">
+								<span>🏷️ Precificação de Venda ao Consumidor Final</span>
+							</div>
+							<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+								<div class="form-group" style="margin-bottom: 0;">
+									<label for="insumoPrecoVenda" style="font-weight: 700; color: #1e3a8a;">
+										Preço de Venda Final (R$) *
+									</label>
+									<input 
+										type="number" 
+										id="insumoPrecoVenda" 
+										step="0.01" 
+										min="0" 
+										placeholder="0.00" 
+										style="background: #ffffff; border-color: #93c5fd; font-weight: 700; font-size: 1rem; color: #1d4ed8;" />
+									<small style="color: #64748b; font-size: 0.78rem;">Preço cobrado na O.S. ao cliente</small>
+								</div>
+								<div class="form-group" style="margin-bottom: 0;">
+									<label for="insumoMargem" style="font-weight: 700; color: #1e3a8a;">
+										Margem de Lucro Bruta (%)
+									</label>
+									<input 
+										type="number" 
+										id="insumoMargem" 
+										step="0.1" 
+										min="0" 
+										placeholder="Ex: 50.0" 
+										style="background: #ffffff; border-color: #93c5fd; font-weight: 700; font-size: 1rem; color: #166534;" />
+									<small style="color: #64748b; font-size: 0.78rem;">Calcula o preço de venda automaticamente</small>
+								</div>
+							</div>
+							<div id="badgeLucroEstimado" class="lucro-preview-badge" style="display: none;">
+								<span>💵 Lucro estimado por unidade:</span>
+								<strong id="textoLucroEstimado">R$ 0,00 (0.0%)</strong>
+							</div>
+						</div>
+					</div>
+
+					<div class="form-actions" style="margin-top: 10px;">
+						<button type="submit" class="btn">📦 Salvar Produto no Estoque</button>
 					</div>
 				</form>
 			</div>
@@ -147,12 +219,14 @@
 						<thead>
 							<tr>
 								<th>Produto / Insumo</th>
+								<th>Destinação</th>
 								<th>Categoria</th>
 								<th>Qtd Atual</th>
 								<th>Mínimo</th>
-								<th>Status</th>
 								<th>Custo Unit.</th>
-								<th style="text-align: center;">Ações Rápidas (+/-)</th>
+								<th>Preço Venda</th>
+								<th>Status</th>
+								<th style="text-align: center;">Ações Rápidas</th>
 							</tr>
 						</thead>
 						<tbody id="corpoTabelaEstoque">
@@ -166,6 +240,85 @@
 		<script src="js/brand-service.js"></script>
 		<script src="js/estoque-service.js"></script>
 		<script>
+			let tipoSelecionado = 'interno';
+
+			window.selecionarTipoProduto = function(tipo) {
+				tipoSelecionado = tipo;
+				const cardInterno = document.getElementById('cardTipoInterno');
+				const cardVenda = document.getElementById('cardTipoVenda');
+				const radioInterno = document.getElementById('tipoInterno');
+				const radioVenda = document.getElementById('tipoVenda');
+				const blocoVenda = document.getElementById('blocoPrecificacaoVenda');
+				const inputPrecoVenda = document.getElementById('insumoPrecoVenda');
+
+				if (tipo === 'venda') {
+					cardVenda.classList.add('active');
+					cardInterno.classList.remove('active');
+					radioVenda.checked = true;
+					blocoVenda.style.display = 'block';
+					inputPrecoVenda.required = true;
+					recalcularPrecos('custo');
+				} else {
+					cardInterno.classList.add('active');
+					cardVenda.classList.remove('active');
+					radioInterno.checked = true;
+					blocoVenda.style.display = 'none';
+					inputPrecoVenda.required = false;
+				}
+			};
+
+			function recalcularPrecos(origem) {
+				const custo = parseFloat(document.getElementById('insumoCusto').value || 0);
+				const inputVenda = document.getElementById('insumoPrecoVenda');
+				const inputMargem = document.getElementById('insumoMargem');
+				const badgeLucro = document.getElementById('badgeLucroEstimado');
+				const textoLucro = document.getElementById('textoLucroEstimado');
+
+				if (tipoSelecionado !== 'venda') {
+					badgeLucro.style.display = 'none';
+					return;
+				}
+
+				let venda = parseFloat(inputVenda.value || 0);
+				let margem = parseFloat(inputMargem.value || 0);
+
+				if (origem === 'venda') {
+					if (custo > 0 && venda > 0) {
+						margem = ((venda - custo) / custo) * 100;
+						inputMargem.value = margem.toFixed(1);
+					} else if (custo === 0 && venda > 0) {
+						inputMargem.value = '100.0';
+						margem = 100;
+					}
+				} else if (origem === 'margem') {
+					if (custo > 0 && margem >= 0) {
+						venda = custo * (1 + margem / 100);
+						inputVenda.value = venda.toFixed(2);
+					}
+				} else if (origem === 'custo') {
+					if (margem > 0 && custo > 0) {
+						venda = custo * (1 + margem / 100);
+						inputVenda.value = venda.toFixed(2);
+					} else if (venda > 0 && custo > 0) {
+						margem = ((venda - custo) / custo) * 100;
+						inputMargem.value = margem.toFixed(1);
+					}
+				}
+
+				if (venda > 0) {
+					badgeLucro.style.display = 'inline-flex';
+					const lucroReais = venda - custo;
+					textoLucro.textContent = `R$ ${lucroReais.toFixed(2)} (${margem.toFixed(1)}% margem)`;
+				} else {
+					badgeLucro.style.display = 'none';
+				}
+			}
+
+			// Listeners para recálculo automático e bidirecional
+			document.getElementById('insumoCusto').addEventListener('input', () => recalcularPrecos('custo'));
+			document.getElementById('insumoPrecoVenda').addEventListener('input', () => recalcularPrecos('venda'));
+			document.getElementById('insumoMargem').addEventListener('input', () => recalcularPrecos('margem'));
+
 			function carregarTabelaEstoque() {
 				const produtos = EstoqueService.getProdutos();
 				const criticos = EstoqueService.getAlertasEstoqueBaixo();
@@ -175,10 +328,16 @@
 				document.getElementById('statItensCriticos').textContent = criticos.length;
 
 				let valorCustoTotal = 0;
+				let totalItensVenda = 0;
+
 				produtos.forEach(p => {
 					valorCustoTotal += (p.quantidade || 0) * (p.precoCusto || 0);
+					if (p.tipo === 'venda') {
+						totalItensVenda++;
+					}
 				});
 				document.getElementById('statValorTotalEstoque').textContent = `R$ ${valorCustoTotal.toFixed(2)}`;
+				document.getElementById('statTotalItensVenda').textContent = `${totalItensVenda} produtos`;
 
 				// Alerta topo
 				const alertaBox = document.getElementById('alertaEstoqueCritico');
@@ -192,24 +351,35 @@
 
 				corpo.innerHTML = '';
 				if (produtos.length === 0) {
-					corpo.innerHTML = '<tr><td colspan="7" class="empty-table-message">Nenhum insumo cadastrado no estoque.</td></tr>';
+					corpo.innerHTML = '<tr><td colspan="9" class="empty-table-message">Nenhum produto cadastrado no estoque.</td></tr>';
 					return;
 				}
 
 				produtos.forEach(p => {
 					const isCritico = (p.quantidade || 0) <= (p.qtdMinima || 0);
-					const badge = isCritico 
+					const statusBadge = isCritico 
 						? `<span class="badge" style="background:#fee2e2; color:#b91c1c; border-color:#fecaca;">⚠️ Estoque Baixo</span>`
 						: `<span class="badge" style="background:#dcfce7; color:#15803d; border-color:#bbf7d0;">✅ OK</span>`;
+
+					const isVenda = p.tipo === 'venda';
+					const tipoBadge = isVenda
+						? `<span class="badge" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe;">🏷️ Venda Balcão</span>`
+						: `<span class="badge" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1;">🏢 Uso Interno</span>`;
+
+					const precoVendaFmt = isVenda && parseFloat(p.precoVenda || 0) > 0
+						? `<strong style="color:#15803d;">R$ ${parseFloat(p.precoVenda).toFixed(2)}</strong> <small style="color:#64748b; font-size:0.75rem;">(${parseFloat(p.margemLucro || 0).toFixed(0)}%)</small>`
+						: `<span style="color:#94a3b8; font-size:0.85rem;">-</span>`;
 
 					const tr = document.createElement('tr');
 					tr.innerHTML = `
 						<td><strong>${p.nome}</strong></td>
+						<td>${tipoBadge}</td>
 						<td><span style="font-size:0.85rem; color:var(--text-muted);">${p.categoria || '-'}</span></td>
 						<td><strong style="font-size:1rem; color:${isCritico ? '#dc2626' : 'inherit'};">${p.quantidade} ${p.unidade}</strong></td>
 						<td>${p.qtdMinima} ${p.unidade}</td>
-						<td>${badge}</td>
 						<td>R$ ${parseFloat(p.precoCusto || 0).toFixed(2)}</td>
+						<td>${precoVendaFmt}</td>
+						<td>${statusBadge}</td>
 						<td style="text-align:center;">
 							<div style="display:inline-flex; align-items:center; gap:4px;">
 								<button type="button" class="btn btn-sm btn-secondary" style="padding:2px 8px; font-weight:700;" onclick="alterarEstoque('${p.id}', -1)" title="Subtrair 1">-1</button>
@@ -240,9 +410,30 @@
 				const qtdMinima = parseFloat(document.getElementById('insumoQtdMin').value || 1);
 				const unidade = document.getElementById('insumoUnidade').value;
 				const precoCusto = parseFloat(document.getElementById('insumoCusto').value || 0);
+				const tipo = tipoSelecionado;
+				const precoVenda = tipo === 'venda' ? parseFloat(document.getElementById('insumoPrecoVenda').value || 0) : 0;
+				const margemLucro = tipo === 'venda' ? parseFloat(document.getElementById('insumoMargem').value || 0) : 0;
 
-				EstoqueService.adicionarProduto({ nome, categoria, quantidade, qtdMinima, unidade, precoCusto });
+				if (tipo === 'venda' && precoVenda <= 0) {
+					alert('Por favor, informe o preço de venda para produtos comercializáveis.');
+					document.getElementById('insumoPrecoVenda').focus();
+					return;
+				}
+
+				EstoqueService.adicionarProduto({ 
+					nome, 
+					categoria, 
+					quantidade, 
+					qtdMinima, 
+					unidade, 
+					precoCusto,
+					tipo,
+					precoVenda,
+					margemLucro
+				});
+
 				document.getElementById('formNovoInsumo').reset();
+				selecionarTipoProduto('interno');
 				carregarTabelaEstoque();
 			});
 

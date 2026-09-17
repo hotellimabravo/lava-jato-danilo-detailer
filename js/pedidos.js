@@ -60,6 +60,17 @@ const modalFecharBtn = document.getElementById('modalFecharBtn');
 const modalCancelarBtn = document.getElementById('modalCancelarBtn');
 const modalCheckImprimirRecibo = document.getElementById('modalCheckImprimirRecibo');
 
+// Produtos Comerciais / Venda Balcão na O.S.
+const blocoProdutosVendaEntrada = document.getElementById('blocoProdutosVendaEntrada');
+const gridProdutosVendaEntrada = document.getElementById('gridProdutosVendaEntrada');
+const contadorItensVendaEntrada = document.getElementById('contadorItensVendaEntrada');
+const modalSelectProdutoBalcao = document.getElementById('modalSelectProdutoBalcao');
+const modalBtnAddProdutoBalcao = document.getElementById('modalBtnAddProdutoBalcao');
+const modalListaProdutosFechamento = document.getElementById('modalListaProdutosFechamento');
+const modalResumoSubtotalProdutos = document.getElementById('modalResumoSubtotalProdutos');
+
+let produtosFechamentoAtuais = [];
+
 // Modal de Recibo Cupom Fiscal
 const modalRecibo = document.getElementById('modalRecibo');
 const modalReciboConteudo = document.getElementById('modalReciboConteudo');
@@ -164,17 +175,99 @@ function carregarSelectServicos() {
 	}
 }
 
-// Cálculo automático de preço ao selecionar serviços
-if (pedidoServico) {
-	pedidoServico.addEventListener('change', () => {
-		let total = 0;
+// Cálculo automático de preço ao selecionar serviços ou produtos
+function calcularValorTotalEntrada() {
+	let totalServicos = 0;
+	if (pedidoServico) {
 		Array.from(pedidoServico.selectedOptions).forEach((opt) => {
-			const preco = parseFloat(opt.dataset.preco) || 0;
-			total += preco;
+			totalServicos += parseFloat(opt.dataset.preco) || 0;
 		});
-		if (total > 0 && pedidoValor) {
-			pedidoValor.value = total.toFixed(2);
-		}
+	}
+
+	let totalProdutos = 0;
+	const checks = document.querySelectorAll('.check-produto-venda:checked');
+	checks.forEach(chk => {
+		totalProdutos += parseFloat(chk.dataset.preco || 0);
+	});
+
+	const total = totalServicos + totalProdutos;
+	if (total > 0 && pedidoValor) {
+		pedidoValor.value = total.toFixed(2);
+	}
+}
+
+if (pedidoServico) {
+	pedidoServico.addEventListener('change', calcularValorTotalEntrada);
+}
+
+// Carregar produtos comerciais disponíveis para seleção na entrada da O.S.
+function carregarProdutosVendaEntrada() {
+	if (!gridProdutosVendaEntrada || typeof EstoqueService === 'undefined') return;
+	const produtosVenda = EstoqueService.getProdutosParaVenda();
+
+	gridProdutosVendaEntrada.innerHTML = '';
+	if (contadorItensVendaEntrada) {
+		contadorItensVendaEntrada.textContent = `${produtosVenda.length} produto(s) de balcão`;
+	}
+
+	if (produtosVenda.length === 0) {
+		gridProdutosVendaEntrada.innerHTML = `
+			<div style="font-size:0.82rem; color:var(--text-muted); grid-column: 1 / -1;">
+				Nenhum produto cadastrado para venda direta. Cadastre na aba <a href="estoque.html" style="color:var(--primary); font-weight:600;">Estoque</a> marcando a opção "Venda ao Consumidor".
+			</div>
+		`;
+		return;
+	}
+
+	produtosVenda.forEach(p => {
+		const saldo = parseFloat(p.quantidade || 0);
+		const semEstoque = saldo <= 0;
+		const precoVenda = parseFloat(p.precoVenda || 0);
+
+		const label = document.createElement('label');
+		label.style.cssText = `
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			background: #ffffff;
+			padding: 8px 10px;
+			border: 1px solid ${semEstoque ? '#e2e8f0' : '#bbf7d0'};
+			border-radius: var(--radius-sm);
+			cursor: ${semEstoque ? 'not-allowed' : 'pointer'};
+			opacity: ${semEstoque ? '0.6' : '1'};
+			transition: all 0.15s ease;
+		`;
+
+		label.innerHTML = `
+			<input type="checkbox" class="check-produto-venda" 
+				data-id="${p.id}" 
+				data-nome="${p.nome}" 
+				data-preco="${precoVenda}" 
+				data-saldo="${saldo}" 
+				${semEstoque ? 'disabled' : ''} 
+				style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;" />
+			<div style="flex: 1; line-height: 1.25;">
+				<div style="font-size: 0.84rem; font-weight: 700; color: var(--text-main);">${p.nome}</div>
+				<div style="font-size: 0.76rem; color: #15803d; font-weight: 700; margin-top: 2px;">
+					R$ ${precoVenda.toFixed(2)} 
+					<span style="color: #64748b; font-weight: normal; font-size: 0.72rem;">(Disp: ${saldo})</span>
+				</div>
+			</div>
+		`;
+
+		const chk = label.querySelector('.check-produto-venda');
+		chk.addEventListener('change', () => {
+			if (chk.checked) {
+				label.style.borderColor = 'var(--primary)';
+				label.style.background = '#f0fdf4';
+			} else {
+				label.style.borderColor = '#bbf7d0';
+				label.style.background = '#ffffff';
+			}
+			calcularValorTotalEntrada();
+		});
+
+		gridProdutosVendaEntrada.appendChild(label);
 	});
 }
 
@@ -302,7 +395,16 @@ function renderizarTabelas() {
 					<div>${p.data || '-'}</div>
 					<small style="color:var(--text-muted);">${p.horaEntrada ? 'Chegada: ' + p.horaEntrada : ''}</small>
 				</td>
-				<td>${p.servicos || '-'}</td>
+				<td>
+					<div>${p.servicos || '-'}</div>
+					${p.produtosVendidos && p.produtosVendidos.length > 0 ? `
+						<div style="margin-top:4px;">
+							<span class="badge" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; font-size:0.75rem;">
+								🛍️ ${p.produtosVendidos.map(pv => `${pv.quantidade || 1}x ${pv.nome}`).join(', ')}
+							</span>
+						</div>
+					` : ''}
+				</td>
 				<td>
 					<span class="badge-price">R$ ${valorFormatado}</span>
 					<div><span class="badge badge-status badge-status-aberto">Em Andamento</span></div>
@@ -361,7 +463,16 @@ function renderizarTabelas() {
 					<div>${dataSaida}</div>
 					<small style="color:var(--text-muted);">${horaSaida}</small>
 				</td>
-				<td>${p.servicos || '-'}</td>
+				<td>
+					<div>${p.servicos || '-'}</div>
+					${p.produtosVendidos && p.produtosVendidos.length > 0 ? `
+						<div style="margin-top:4px;">
+							<span class="badge" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; font-size:0.75rem;">
+								🛍️ ${p.produtosVendidos.map(pv => `${pv.quantidade || 1}x ${pv.nome}`).join(', ')}
+							</span>
+						</div>
+					` : ''}
+				</td>
 				<td><span class="badge-price">R$ ${valorFormatado}</span></td>
 				<td>
 					<span class="badge badge-payment">${p.formaPagamento || 'Outro'}</span>
@@ -442,6 +553,15 @@ function abrirModalEncerramento(osId) {
 		modalDetalhesServicos.innerHTML = `🛠️ Serviços: <strong>${p.servicos}</strong>`;
 	}
 
+	// Inicializa produtos vinculados a esta OS no fechamento
+	produtosFechamentoAtuais = [];
+	if (p.produtosVendidos && Array.isArray(p.produtosVendidos)) {
+		produtosFechamentoAtuais = JSON.parse(JSON.stringify(p.produtosVendidos));
+	}
+
+	popularSelectProdutosBalcao();
+	renderizarProdutosFechamento();
+
 	if (modalValorFinal) {
 		modalValorFinal.value = parseFloat(p.valor || 0).toFixed(2);
 	}
@@ -453,9 +573,126 @@ function abrirModalEncerramento(osId) {
 	modalEncerramento.classList.add('open');
 }
 
+function popularSelectProdutosBalcao() {
+	if (!modalSelectProdutoBalcao || typeof EstoqueService === 'undefined') return;
+	const produtosVenda = EstoqueService.getProdutosParaVenda();
+	modalSelectProdutoBalcao.innerHTML = '<option value="">Selecione um produto para adicionar à O.S....</option>';
+	produtosVenda.forEach(p => {
+		const saldo = parseFloat(p.quantidade || 0);
+		if (saldo > 0) {
+			const opt = document.createElement('option');
+			opt.value = p.id;
+			opt.textContent = `${p.nome} - R$ ${parseFloat(p.precoVenda || 0).toFixed(2)} (Saldo: ${saldo})`;
+			opt.dataset.nome = p.nome;
+			opt.dataset.preco = p.precoVenda || 0;
+			modalSelectProdutoBalcao.appendChild(opt);
+		}
+	});
+}
+
+function renderizarProdutosFechamento() {
+	if (!modalListaProdutosFechamento) return;
+	modalListaProdutosFechamento.innerHTML = '';
+
+	let subtotalProdutos = 0;
+	if (produtosFechamentoAtuais.length === 0) {
+		modalListaProdutosFechamento.innerHTML = `
+			<span style="color: #64748b; font-size: 0.8rem; font-style: italic;">
+				Nenhum produto de balcão adicionado nesta O.S.
+			</span>
+		`;
+		if (modalResumoSubtotalProdutos) modalResumoSubtotalProdutos.textContent = '';
+		return;
+	}
+
+	produtosFechamentoAtuais.forEach((item, index) => {
+		const qtd = parseFloat(item.quantidade || 1);
+		const preco = parseFloat(item.precoUnitario || item.preco || 0);
+		const subtotal = qtd * preco;
+		subtotalProdutos += subtotal;
+
+		const div = document.createElement('div');
+		div.style.cssText = `
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			background: #ffffff;
+			padding: 6px 10px;
+			border: 1px solid #cbd5e1;
+			border-radius: 4px;
+		`;
+
+		div.innerHTML = `
+			<div>
+				<strong style="color: var(--text-main); font-size: 0.82rem;">🛍️ ${item.nome}</strong>
+				<span style="color: #15803d; font-size: 0.78rem; margin-left: 6px;">
+					${qtd}x R$ ${preco.toFixed(2)} = <strong>R$ ${subtotal.toFixed(2)}</strong>
+				</span>
+			</div>
+			<button type="button" class="btn btn-sm" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 1px 6px; font-size: 0.75rem; cursor: pointer;" onclick="removerProdutoFechamento(${index})" title="Remover produto da O.S.">
+				✕
+			</button>
+		`;
+		modalListaProdutosFechamento.appendChild(div);
+	});
+
+	if (modalResumoSubtotalProdutos) {
+		modalResumoSubtotalProdutos.textContent = `Subtotal Produtos: R$ ${subtotalProdutos.toFixed(2)}`;
+	}
+}
+
+window.removerProdutoFechamento = function(index) {
+	if (index >= 0 && index < produtosFechamentoAtuais.length) {
+		const itemRemovido = produtosFechamentoAtuais[index];
+		const valorReduzir = parseFloat(itemRemovido.quantidade || 1) * parseFloat(itemRemovido.precoUnitario || itemRemovido.preco || 0);
+		produtosFechamentoAtuais.splice(index, 1);
+		if (modalValorFinal) {
+			const valorAtual = parseFloat(modalValorFinal.value || 0);
+			modalValorFinal.value = Math.max(0, valorAtual - valorReduzir).toFixed(2);
+		}
+		renderizarProdutosFechamento();
+	}
+};
+
+if (modalBtnAddProdutoBalcao && modalSelectProdutoBalcao) {
+	modalBtnAddProdutoBalcao.addEventListener('click', () => {
+		const opt = modalSelectProdutoBalcao.selectedOptions[0];
+		if (!opt || !opt.value) {
+			alert('Selecione um produto para adicionar à O.S.');
+			return;
+		}
+
+		const id = opt.value;
+		const nome = opt.dataset.nome;
+		const preco = parseFloat(opt.dataset.preco || 0);
+
+		// Se já existe na lista, apenas incrementa quantidade
+		const existente = produtosFechamentoAtuais.find(p => p.id === id);
+		if (existente) {
+			existente.quantidade = (parseFloat(existente.quantidade || 1) + 1);
+		} else {
+			produtosFechamentoAtuais.push({
+				id: id,
+				nome: nome,
+				quantidade: 1,
+				precoUnitario: preco
+			});
+		}
+
+		if (modalValorFinal) {
+			const valorAtual = parseFloat(modalValorFinal.value || 0);
+			modalValorFinal.value = (valorAtual + preco).toFixed(2);
+		}
+
+		modalSelectProdutoBalcao.value = '';
+		renderizarProdutosFechamento();
+	});
+}
+
 function fecharModalEncerramento() {
 	modalEncerramento.classList.remove('open');
 	pedidoSelecionadoParaEncerrar = null;
+	produtosFechamentoAtuais = [];
 }
 
 if (modalFecharBtn) modalFecharBtn.addEventListener('click', fecharModalEncerramento);
@@ -483,6 +720,12 @@ if (formEncerramento) {
 			pedidos[index].formaPagamento = formaPagamento;
 			pedidos[index].dataEncerramento = hoje;
 			pedidos[index].horaEncerramento = horaAtual;
+			pedidos[index].produtosVendidos = produtosFechamentoAtuais;
+
+			// Dá baixa automática no estoque para os produtos vendidos
+			if (typeof EstoqueService !== 'undefined' && produtosFechamentoAtuais.length > 0) {
+				EstoqueService.darBaixaEstoqueVenda(produtosFechamentoAtuais);
+			}
 
 			pedidoEncerradoFinal = pedidos[index];
 			localStorage.setItem('pedidos', JSON.stringify(pedidos));
@@ -628,6 +871,18 @@ if (pedidoForm) {
 			});
 		}
 
+		// Coleta produtos comerciais selecionados na entrada
+		const produtosEntradaSelecionados = [];
+		const checksVenda = document.querySelectorAll('.check-produto-venda:checked');
+		checksVenda.forEach(chk => {
+			produtosEntradaSelecionados.push({
+				id: chk.dataset.id,
+				nome: chk.dataset.nome,
+				quantidade: 1,
+				precoUnitario: parseFloat(chk.dataset.preco || 0)
+			});
+		});
+
 		const novoPedido = {
 			id: osId,
 			cliente: clienteNome,
@@ -635,6 +890,7 @@ if (pedidoForm) {
 			cor: cor,
 			modelo: modelo,
 			servicos: servicosSelecionados.join(', '),
+			produtosVendidos: produtosEntradaSelecionados,
 			operadorId: operadorId,
 			operadorNome: operadorNome,
 			data: data,
@@ -655,6 +911,7 @@ if (pedidoForm) {
 		if (pedidoData) pedidoData.value = obterDataHojeISO();
 		popularCoresVeiculo();
 		popularSelectOperadores();
+		carregarProdutosVendaEntrada();
 		renderizarTabelas();
 
 		// Rola até o pátio e garante a aba ativa
@@ -668,5 +925,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	popularCoresVeiculo();
 	carregarSelectServicos();
 	popularSelectOperadores();
+	carregarProdutosVendaEntrada();
 	renderizarTabelas();
 });

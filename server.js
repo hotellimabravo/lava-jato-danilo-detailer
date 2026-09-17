@@ -13,6 +13,20 @@ app.get('/firebase-config.json', (req, res) => {
     res.sendFile(path.join(__dirname, 'firebase-applet-config.json'));
 });
 
+// PWA Headers for Service Worker and Web App Manifest
+app.get('/sw.js', (req, res) => {
+    res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+    res.setHeader('Service-Worker-Allowed', '/');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(path.join(__dirname, 'sw.js'));
+});
+
+app.get('/manifest.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.sendFile(path.join(__dirname, 'manifest.json'));
+});
+
 // Serve static assets from root directory
 app.use(express.static(__dirname));
 

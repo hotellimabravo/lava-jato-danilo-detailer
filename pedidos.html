@@ -146,6 +146,20 @@
 						</select>
 					</div>
 
+					<!-- Produtos Comerciais / Venda Balcão na Entrada da O.S. -->
+					<div class="form-group full-width" id="blocoProdutosVendaEntrada" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-sm); padding:12px;">
+						<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+							<div style="font-weight:700; font-size:0.92rem; color:#166534; display:flex; align-items:center; gap:6px;">
+								<span>🛍️ Produtos de Venda / Balcão Levados pelo Cliente</span>
+								<span style="font-size:0.75rem; font-weight:normal; color:#15803d;">(Opcional)</span>
+							</div>
+							<span id="contadorItensVendaEntrada" style="font-size:0.78rem; font-weight:700; color:#166534;"></span>
+						</div>
+						<div id="gridProdutosVendaEntrada" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:8px;">
+							<!-- Preenchido via JS com os produtos destinados à venda -->
+						</div>
+					</div>
+
 					<!-- Checklist / Vistoria Rápida de Entrada -->
 					<div class="form-group full-width" style="background:#f8fafc; border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:12px;">
 						<div style="font-weight:700; font-size:0.92rem; margin-bottom:8px; color:var(--text-main); display:flex; align-items:center; gap:6px;">
@@ -243,6 +257,25 @@
 							<div id="modalDetalhesServicos" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;"></div>
 						</div>
 
+						<!-- Adicionar Produtos Rápidos no Fechamento do Caixa / O.S. -->
+						<div style="margin-bottom: 14px; padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm);">
+							<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+								<span style="font-size: 0.88rem; font-weight: 700; color: #166534;">🛍️ Produtos de Balcão Levados na Saída</span>
+								<span id="modalResumoSubtotalProdutos" style="font-size: 0.8rem; font-weight: 700; color: #15803d;"></span>
+							</div>
+							<div style="display: flex; gap: 8px;">
+								<select id="modalSelectProdutoBalcao" style="flex: 1; font-size: 0.85rem; padding: 6px 10px;">
+									<option value="">Selecione um produto para adicionar à O.S....</option>
+								</select>
+								<button type="button" class="btn btn-sm" id="modalBtnAddProdutoBalcao" style="background: #166534; color: #ffffff; padding: 6px 12px; font-weight: 700; white-space: nowrap;">
+									+ Adicionar
+								</button>
+							</div>
+							<div id="modalListaProdutosFechamento" style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+								<!-- Produtos adicionados listados dinamicamente -->
+							</div>
+						</div>
+
 						<div class="form-group" style="margin-bottom: 14px;">
 							<label for="modalValorFinal">Valor Final Cobrado (R$) *</label>
 							<input type="number" id="modalValorFinal" step="0.01" min="0" required />
@@ -311,6 +344,7 @@
 		<script src="js/brand-service.js"></script>
 		<script src="js/caixa-service.js"></script>
 		<script src="js/equipe-service.js"></script>
+		<script src="js/estoque-service.js"></script>
 		<script src="js/vistoria-service.js"></script>
 		<script src="js/recibo-service.js"></script>
 		<script src="js/pedidos.js"></script>
