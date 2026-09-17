@@ -1,3 +1,4 @@
+import './error-guard.js';
 import { initFirebase, db, auth, signInWithEmailAndPassword, signOut as fbSignOut, doc, getDoc, setDoc } from './firebase-init.js';
 import './firebase-sync.js';
 import './empresa-service.js';
@@ -102,7 +103,7 @@ const AuthService = {
                 }
             }
         } catch (err) {
-            console.warn('Erro ao verificar usuário na nuvem:', err);
+            console.warn('Erro ao verificar usuário na nuvem:', err ? (err.message || String(err)) : '');
         }
 
         // 3. CHECK REGULAR USERS (Stored locally)
@@ -128,7 +129,7 @@ const AuthService = {
         try {
             if (auth) await fbSignOut(auth);
         } catch (e) {
-            console.error(e);
+            console.error('Erro ao sair:', e ? (e.message || String(e)) : '');
         }
         window.location.href = 'login.html';
     },
@@ -140,7 +141,8 @@ const AuthService = {
 
     checkAuth() {
         const user = this.getCurrentUser();
-        const isLoginPage = window.location.pathname.endsWith('login.html');
+        const p = window.location.pathname;
+        const isLoginPage = p.endsWith('login.html') || p.endsWith('/login') || p === '/login' || p.endsWith('/login/');
         
         if (!user && !isLoginPage) {
             window.location.href = 'login.html';

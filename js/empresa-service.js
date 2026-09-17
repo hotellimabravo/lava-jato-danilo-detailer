@@ -74,7 +74,7 @@ const EmpresaService = {
                 }
             }
         } catch (err) {
-            console.warn('Não foi possível sincronizar empresas da nuvem:', err);
+            console.warn('Não foi possível sincronizar empresas da nuvem:', err ? (err.message || String(err)) : '');
         }
 
         // 2. Renderizar barra do Master se for administrador Master
@@ -263,7 +263,7 @@ const EmpresaService = {
             try {
                 await deleteDoc(doc(db, 'empresas_lista', empresaId));
             } catch (err) {
-                console.warn('Erro ao excluir empresa da nuvem:', err);
+                console.warn('Erro ao excluir empresa da nuvem:', err ? (err.message || String(err)) : '');
             }
         }
 

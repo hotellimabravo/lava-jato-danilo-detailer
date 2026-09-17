@@ -2,68 +2,65 @@
 // Service Worker - Sistema de Gestão Multi-Empresas (PWA)
 // ==========================================================================
 
-const CACHE_NAME = 'gestao-saas-cache-v2';
+const CACHE_NAME = 'gestao-saas-cache-v3';
 const PRECACHE_ASSETS = [
-    '/',
-    '/index.html',
-    '/login.html',
-    '/pedidos.html',
-    '/agendamentos.html',
-    '/caixa.html',
-    '/clientes.html',
-    '/servicos.html',
-    '/estoque.html',
-    '/fidelidade.html',
-    '/configuracoes.html',
-    '/historico.html',
-    '/pedidos',
-    '/agendamentos',
-    '/caixa',
-    '/clientes',
-    '/servicos',
-    '/estoque',
-    '/fidelidade',
-    '/configuracoes',
-    '/historico',
-    '/login',
-    '/style.css',
-    '/manifest.json',
-    '/icon-192.png',
-    '/icon-512.png',
-    '/icon-maskable-192.png',
-    '/icon-maskable-512.png',
-    '/apple-touch-icon.png',
-    '/icon.svg',
-    '/js/pwa-install.js',
-    '/js/brand-service.js',
-    '/js/auth-service.js',
-    '/js/firebase-init.js',
-    '/js/firebase-sync.js',
-    '/js/empresa-service.js',
-    '/js/caixa-service.js',
-    '/js/equipe-service.js',
-    '/js/estoque-service.js',
-    '/js/vistoria-service.js',
-    '/js/recibo-service.js',
-    '/js/pedidos.js',
-    '/js/clientes.js',
-    '/js/servicos.js',
-    '/js/caixa.js',
-    '/js/agendamentos.js',
-    '/js/estoque.js',
-    '/js/fidelidade.js',
-    '/js/configuracoes.js',
-    '/js/historico.js',
-    '/js/login.js',
-    '/js/theme-toggle.js'
+    './',
+    'index.html',
+    'login.html',
+    'pedidos.html',
+    'agendamentos.html',
+    'caixa.html',
+    'clientes.html',
+    'servicos.html',
+    'estoque.html',
+    'fidelidade.html',
+    'configuracoes.html',
+    'historico.html',
+    'style.css',
+    'manifest.json',
+    'icon-192.png',
+    'icon-512.png',
+    'icon-maskable-192.png',
+    'icon-maskable-512.png',
+    'apple-touch-icon.png',
+    'icon.svg',
+    'js/pwa-install.js',
+    'js/error-guard.js',
+    'js/brand-service.js',
+    'js/auth-service.js',
+    'js/firebase-init.js',
+    'js/firebase-sync.js',
+    'js/empresa-service.js',
+    'js/caixa-service.js',
+    'js/equipe-service.js',
+    'js/estoque-service.js',
+    'js/fidelidade-service.js',
+    'js/vistoria-service.js',
+    'js/recibo-service.js',
+    'js/google-calendar-service.js',
+    'js/google-drive-service.js',
+    'js/database-excel.js',
+    'js/index.js',
+    'js/pedidos.js',
+    'js/clientes.js',
+    'js/servicos.js',
+    'js/caixa.js',
+    'js/agendamentos.js',
+    'js/configuracoes.js',
+    'js/historico.js'
 ];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(PRECACHE_ASSETS).catch((err) => {
-                console.warn('[SW] Falha em alguns itens do pré-cache:', err);
-            });
+        caches.open(CACHE_NAME).then(async (cache) => {
+            // Adicionar arquivos com segurança para que o SW instale com 100% de sucesso
+            for (const asset of PRECACHE_ASSETS) {
+                try {
+                    await cache.add(new Request(asset, { cache: 'reload' }));
+                } catch (err) {
+                    console.warn('[SW] Pré-cache individual ignorado:', asset, err ? err.message : '');
+                }
+            }
         }).then(() => self.skipWaiting())
     );
 });
@@ -111,12 +108,10 @@ self.addEventListener('fetch', (event) => {
                         return cachedResponse;
                     }
                     if (event.request.mode === 'navigate') {
-                        const path = url.pathname;
-                        return caches.match(path).then((matchClean) => {
-                            if (matchClean) return matchClean;
-                            return caches.match(path + '.html').then((htmlResp) => {
-                                if (htmlResp) return htmlResp;
-                                return caches.match('/index.html');
+                        return caches.match(event.request).then((navResp) => {
+                            if (navResp) return navResp;
+                            return caches.match('index.html').then((indexResp) => {
+                                return indexResp || caches.match('./');
                             });
                         });
                     }

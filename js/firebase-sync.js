@@ -19,9 +19,9 @@ localStorage.setItem = function(key, value) {
             // Push to Firestore
             try {
                 const docRef = doc(db, 'empresas', user.empresaId, 'dados', key);
-                setDoc(docRef, { data: value }).catch(err => console.warn('Erro ao sincronizar com nuvem:', err));
+                setDoc(docRef, { data: value }).catch(err => console.warn('Erro ao sincronizar com nuvem:', err ? (err.message || String(err)) : ''));
             } catch (err) {
-                console.warn('Erro no setDoc:', err);
+                console.warn('Erro no setDoc:', err ? (err.message || String(err)) : '');
             }
         }
     }
@@ -57,10 +57,10 @@ const FirebaseSync = {
                         }
                     }
                 }, (error) => {
-                    console.warn(`Aviso de conexão para ${key}:`, error);
+                    console.warn(`Aviso de conexão para ${key}:`, error ? (error.message || String(error)) : '');
                 });
             } catch (err) {
-                console.warn(`Erro ao iniciar listener para ${key}:`, err);
+                console.warn(`Erro ao iniciar listener para ${key}:`, err ? (err.message || String(err)) : '');
             }
         });
     },

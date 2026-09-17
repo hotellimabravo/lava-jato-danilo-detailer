@@ -2199,17 +2199,53 @@ body {
 	animation: fadeIn 0.3s ease;
 }
 
+.pwa-modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(15, 23, 42, 0.75);
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	display: none;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	box-sizing: border-box;
+	z-index: 999999;
+}
+
+.pwa-modal-overlay.open {
+	display: flex;
+}
+
 .pwa-dialog {
-	max-width: 520px;
-	width: 92%;
+	max-width: 540px;
+	width: 100%;
 	max-height: 90vh;
 	overflow-y: auto;
 	background: var(--bg-surface);
 	border-radius: var(--radius-md);
-	box-shadow: var(--shadow-lg);
+	box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
 	padding: 24px;
 	border: 1px solid var(--border-color);
 	position: relative;
+	box-sizing: border-box;
+	animation: modalPopIn 0.2s ease-out;
+}
+
+@keyframes modalPopIn {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
 }
 
 .pwa-dialog-header {

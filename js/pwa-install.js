@@ -43,6 +43,13 @@ const PWAInstall = {
             this.mostrarToast('🎉 Aplicativo instalado com sucesso na sua tela inicial!');
         });
 
+        // Fechar modal com tecla Esc
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.fecharModal();
+            }
+        });
+
         // 6. Monitorar conectividade online / offline
         window.addEventListener('offline', () => {
             this.mostrarIndicadorOffline(true);
@@ -70,26 +77,32 @@ const PWAInstall = {
         }
 
         const runRegistration = () => {
-            navigator.serviceWorker.register('/sw.js', { scope: '/' })
-                .then((reg) => {
-                    console.log('[PWA] Service Worker registrado com sucesso:', reg.scope);
-                    this.swReady = true;
+            try {
+                // Usa URL relativa à página atual para funcionar perfeitamente na raiz ou subpastas (como GitHub Pages)
+                const swUrl = new URL('sw.js', window.location.href).href;
+                navigator.serviceWorker.register(swUrl)
+                    .then((reg) => {
+                        console.log('[PWA] Service Worker registrado com sucesso:', reg.scope);
+                        this.swReady = true;
 
-                    // Monitorar atualizações do Service Worker
-                    reg.onupdatefound = () => {
-                        const installingWorker = reg.installing;
-                        if (installingWorker) {
-                            installingWorker.onstatechange = () => {
-                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('[PWA] Nova versão detectada em segundo plano.');
-                                }
-                            };
-                        }
-                    };
-                })
-                .catch((err) => {
-                    console.warn('[PWA] Falha no registro do Service Worker:', err);
-                });
+                        // Monitorar atualizações do Service Worker
+                        reg.onupdatefound = () => {
+                            const installingWorker = reg.installing;
+                            if (installingWorker) {
+                                installingWorker.onstatechange = () => {
+                                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        console.log('[PWA] Nova versão detectada em segundo plano.');
+                                    }
+                                };
+                            }
+                        };
+                    })
+                    .catch((err) => {
+                        console.warn('[PWA] Falha no registro do Service Worker:', err ? (err.message || String(err)) : '');
+                    });
+            } catch (err) {
+                console.warn('[PWA] Erro ao iniciar registro do Service Worker:', err ? (err.message || String(err)) : '');
+            }
         };
 
         if (document.readyState === 'complete') {
@@ -150,10 +163,13 @@ const PWAInstall = {
                 if (choiceResult && choiceResult.outcome === 'accepted') {
                     console.log('[PWA] Usuário aceitou o prompt de instalação');
                     this.renderInstallButtons(false);
+                    this.fecharModal();
                 } else {
                     console.log('[PWA] Usuário dispensou o prompt de instalação');
                 }
                 this.deferredPrompt = null;
+                const directBox = document.getElementById('pwaDirectInstallBox');
+                if (directBox) directBox.style.display = 'none';
                 return;
             } catch (err) {
                 console.error('[PWA] Erro ao invocar prompt nativo:', err);
@@ -173,12 +189,10 @@ const PWAInstall = {
 
         const modal = document.createElement('div');
         modal.id = 'modalPwaGeral';
-        modal.className = 'modal-backdrop';
-        modal.style.display = 'none';
-        modal.style.zIndex = '999999';
+        modal.className = 'pwa-modal-overlay';
 
         modal.innerHTML = `
-            <div class="modal-dialog pwa-dialog">
+            <div class="pwa-dialog">
                 <div class="pwa-dialog-header">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span style="font-size: 1.8rem;">📲</span>
@@ -191,7 +205,15 @@ const PWAInstall = {
                             </p>
                         </div>
                     </div>
-                    <button type="button" class="btn-close-modal" onclick="window.PWAInstall.fecharModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                    <button type="button" class="btn-close-modal" onclick="window.PWAInstall.fecharModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-muted); line-height: 1;">&times;</button>
+                </div>
+
+                <!-- Botão de Instalação Direta (quando prompt nativo estiver pronto) -->
+                <div id="pwaDirectInstallBox" style="display: ${this.deferredPrompt ? 'block' : 'none'}; margin-bottom: 16px;">
+                    <button type="button" class="btn btn-primary" onclick="window.PWAInstall.solicitarInstalacao()" style="width: 100%; padding: 12px 16px; font-weight: 700; font-size: 0.95rem; justify-content: center; gap: 8px; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);">
+                        <span>📲</span>
+                        <span>Instalar Aplicativo Agora</span>
+                    </button>
                 </div>
 
                 ${this.isIframe ? `
@@ -312,6 +334,13 @@ const PWAInstall = {
             </div>
         `;
 
+        // Fechar ao clicar fora (no overlay escuro)
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.fecharModal();
+            }
+        });
+
         document.body.appendChild(modal);
     },
 
@@ -336,14 +365,21 @@ const PWAInstall = {
         this.criarModalInstalacao();
         const modal = document.getElementById('modalPwaGeral');
         if (modal) {
-            modal.style.display = 'flex';
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+
+            const directBox = document.getElementById('pwaDirectInstallBox');
+            if (directBox) {
+                directBox.style.display = this.deferredPrompt ? 'block' : 'none';
+            }
         }
     },
 
     fecharModal() {
         const modal = document.getElementById('modalPwaGeral');
         if (modal) {
-            modal.style.display = 'none';
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
         }
     },
 

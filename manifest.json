@@ -1,10 +1,10 @@
 {
-  "id": "/",
+  "id": "plataforma-multi-empresas",
   "name": "Sistema de Gestão Multi-Empresas",
   "short_name": "Gestão SaaS",
   "description": "Sistema completo de gestão comercial, ordens de serviço, comandas, caixa e agendamentos para múltiplos estabelecimentos.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "index.html",
+  "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "window-controls-overlay"],
   "orientation": "any",
@@ -14,31 +14,31 @@
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-maskable-192.png",
+      "src": "icon-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-maskable-512.png",
+      "src": "icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon.svg",
+      "src": "icon.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
@@ -49,22 +49,22 @@
       "name": "Ordens de Serviço",
       "short_name": "O.S.",
       "description": "Acessar pedidos e ordens de serviço",
-      "url": "/pedidos.html",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "url": "pedidos.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Agendamentos",
       "short_name": "Agenda",
       "description": "Ver calendário de horários",
-      "url": "/agendamentos.html",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "url": "agendamentos.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Livro Caixa",
       "short_name": "Caixa",
       "description": "Controle financeiro e fechamento",
-      "url": "/caixa.html",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "url": "caixa.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

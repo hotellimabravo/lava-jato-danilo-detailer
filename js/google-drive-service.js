@@ -15,13 +15,13 @@ class GoogleDriveService {
 	static async obterConfig() {
 		if (this.configCache) return this.configCache;
 		try {
-			const res = await fetch('firebase-applet-config.json');
+			const res = await fetch('/firebase-applet-config.json');
 			if (res.ok) {
 				this.configCache = await res.json();
 				return this.configCache;
 			}
 		} catch (err) {
-			console.warn('Não foi possível carregar firebase-applet-config.json diretamente:', err);
+			console.warn('Não foi possível carregar firebase-applet-config.json diretamente:', err ? (err.message || String(err)) : '');
 		}
 		return null;
 	}
